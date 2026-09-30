@@ -1,0 +1,934 @@
+{% extends "users/basic.html" %}
+
+{% block content %}
+
+<style>
+    .dashboard-card {
+        border: none;
+        border-radius: 15px;
+        transition: 0.2s;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-3px);
+    }
+
+    .kpi-title {
+        font-size: 14px;
+        color: #6c757d;
+        margin-bottom: 8px;
+    }
+
+    .kpi-value {
+        font-size: 28px;
+        font-weight: 700;
+    }
+
+    .section-card {
+        border: none;
+        border-radius: 15px;
+    }
+
+    .section-title {
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    .table th {
+        font-size: 14px;
+        color: #6c757d;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .progress {
+        height: 8px;
+        border-radius: 10px;
+    }
+
+    .dashboard-header {
+        margin-bottom: 30px;
+    }
+
+    .filter-card {
+        border: none;
+        border-radius: 15px;
+    }
+</style>
+
+<div class="container-fluid py-4">
+
+    <!-- HEADER -->
+    <div class="dashboard-header">
+        <h2 class="fw-bold mb-1">Admin Dashboard</h2>
+        <p class="text-muted">
+            Monitor revenue, bookings, users and theater performance
+        </p>
+    </div>
+
+
+    <!-- DATE FILTER -->
+    <div class="card shadow-sm filter-card mb-4">
+        <div class="card-body">
+
+            <form method="GET" class="row g-3 align-items-end">
+
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">
+                        Start Date
+                    </label>
+
+                    <input
+                        type="date"
+                        name="start_date"
+                        class="form-control"
+                        value="{{ request.GET.start_date }}"
+                    >
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">
+                        End Date
+                    </label>
+
+                    <input
+                        type="date"
+                        name="end_date"
+                        class="form-control"
+                        value="{{ request.GET.end_date }}"
+                    >
+                </div>
+
+                <div class="col-md-2">
+                    <button
+                        type="submit"
+                        class="btn btn-primary w-100"
+                    >
+                        Apply Filter
+                    </button>
+                </div>
+
+                <div class="col-md-2">
+                    <a
+                        href="{% url 'admin_dashboard' %}"
+                        class="btn btn-outline-secondary w-100"
+                    >
+                        Clear
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+
+    <!-- FILTER STATUS -->
+    {% if request.GET.start_date or request.GET.end_date %}
+    <div class="alert alert-info">
+        <strong>Filtered Data:</strong>
+
+        {% if request.GET.start_date %}
+            From {{ request.GET.start_date }}
+        {% endif %}
+
+        {% if request.GET.end_date %}
+            To {{ request.GET.end_date }}
+        {% endif %}
+    </div>
+    {% endif %}
+
+
+    <!-- ACTION BUTTONS -->
+    <div class="d-flex justify-content-end mb-4">
+
+        <a
+            href="{% url 'export_bookings_csv' %}?start_date={{ request.GET.start_date }}&end_date={{ request.GET.end_date }}"
+            class="btn btn-success"
+        >
+            Export Bookings CSV
+        </a>
+
+    </div>
+
+
+    <!-- KPI CARDS -->
+    <div class="row g-4 mb-4">
+
+        <!-- Revenue -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card dashboard-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="kpi-title">Total Revenue</div>
+                    <div class="kpi-value">
+                        ₹{{ total_revenue|floatformat:2 }}
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Bookings -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card dashboard-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="kpi-title">Total Bookings</div>
+                    <div class="kpi-value">
+                        {{ total_bookings }}
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Seats -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card dashboard-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="kpi-title">Seats Booked</div>
+                    <div class="kpi-value">
+                        {{ total_seats_booked }}
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Users -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card dashboard-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="kpi-title">Total Users</div>
+                    <div class="kpi-value">
+                        {{ total_users }}
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- SECOND KPI ROW -->
+    <div class="row g-4 mb-5">
+
+        <div class="col-lg-4 col-md-6">
+            <div class="card dashboard-card shadow-sm">
+                <div class="card-body">
+                    <div class="kpi-title">
+                        Average Ticket Price
+                    </div>
+
+                    <div class="kpi-value">
+                        ₹{{ average_ticket_price|floatformat:2 }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-lg-4 col-md-6">
+            <div class="card dashboard-card shadow-sm">
+                <div class="card-body">
+                    <div class="kpi-title">
+                        Cancelled Bookings
+                    </div>
+
+                    <div class="kpi-value">
+                        {{ cancelled_count }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-lg-4 col-md-6">
+            <div class="card dashboard-card shadow-sm">
+                <div class="card-body">
+                    <div class="kpi-title">
+                        Refunded Bookings
+                    </div>
+
+                    <div class="kpi-value">
+                        {{ refunded_count }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- REVENUE CHART -->
+    <div class="card section-card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <h5 class="section-title">
+                Revenue Trend — Last 7 Days
+            </h5>
+
+            <canvas id="revenueChart" height="90"></canvas>
+
+        </div>
+
+    </div>
+
+
+    <!-- MOVIES + THEATERS -->
+    <div class="row g-4 mb-4">
+
+        <!-- MOST BOOKED MOVIES -->
+        <div class="col-lg-6">
+
+            <div class="card section-card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <h5 class="section-title">
+                        Most Booked Movies
+                    </h5>
+
+                    <div class="table-responsive">
+
+                        <table class="table table-hover">
+
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Movie</th>
+                                    <th>Bookings</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% for movie in most_booked_movies %}
+
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+
+                                    <td>
+                                        {{ movie.movie__name }}
+                                    </td>
+
+                                    <td>
+                                        <span class="badge bg-primary">
+                                            {{ movie.booking_count }}
+                                        </span>
+                                    </td>
+                                </tr>
+
+                                {% empty %}
+
+                                <tr>
+                                    <td colspan="3"
+                                        class="text-center text-muted">
+                                        No booking data available.
+                                    </td>
+                                </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TOP THEATERS -->
+        <div class="col-lg-6">
+
+            <div class="card section-card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <h5 class="section-title">
+                        Top Theaters
+                    </h5>
+
+                    <div class="table-responsive">
+
+                        <table class="table table-hover">
+
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Theater</th>
+                                    <th>Bookings</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% for theater in top_theaters %}
+
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+
+                                    <td>
+                                        {{ theater.theater__theater_name }}
+                                    </td>
+
+                                    <td>
+                                        <span class="badge bg-success">
+                                            {{ theater.booking_count }}
+                                        </span>
+                                    </td>
+                                </tr>
+
+                                {% empty %}
+
+                                <tr>
+                                    <td colspan="3"
+                                        class="text-center text-muted">
+                                        No theater data available.
+                                    </td>
+                                </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- MONTHLY REVENUE + BOOKING STATUS -->
+    <div class="row g-4 mb-4">
+
+        <!-- MONTHLY REVENUE -->
+        <div class="col-lg-7">
+
+            <div class="card section-card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <h5 class="section-title">
+                        Monthly Revenue — Last 12 Months
+                    </h5>
+
+                    <div class="table-responsive">
+
+                        <table class="table table-hover">
+
+                            <thead>
+                                <tr>
+                                    <th>Month</th>
+                                    <th>Revenue</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% for item in monthly_revenue %}
+
+                                <tr>
+                                    <td>
+                                        {{ item.month|date:"F Y" }}
+                                    </td>
+
+                                    <td class="fw-semibold">
+                                        ₹{{ item.revenue|floatformat:2 }}
+                                    </td>
+                                </tr>
+
+                                {% empty %}
+
+                                <tr>
+                                    <td colspan="2"
+                                        class="text-center text-muted">
+                                        No revenue data available.
+                                    </td>
+                                </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- BOOKING STATUS -->
+        <div class="col-lg-5">
+
+            <div class="card section-card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <h5 class="section-title">
+                        Booking Status
+                    </h5>
+
+                    <div class="table-responsive">
+
+                        <table class="table">
+
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Bookings</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% for item in booking_status_summary %}
+
+                                <tr>
+                                    <td>
+                                        {{ item.booking_status }}
+                                    </td>
+
+                                    <td>
+                                        <strong>
+                                            {{ item.count }}
+                                        </strong>
+                                    </td>
+                                </tr>
+
+                                {% empty %}
+
+                                <tr>
+                                    <td colspan="2"
+                                        class="text-center text-muted">
+                                        No booking data available.
+                                    </td>
+                                </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- YEARLY REVENUE -->
+
+    <div class="card section-card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <h5 class="section-title">
+            Yearly Revenue
+            </h5>
+
+            <div class="table-responsive">
+
+                <table class="table table-hover">
+
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>Revenue</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for item in yearly_revenue %}
+
+                        <tr>
+                            <td>
+                                {{ item.year|date:"Y" }}
+                            </td>
+
+                            <td class="fw-semibold">
+                                ₹{{ item.revenue|floatformat:2 }}
+                            </td>
+                        </tr>
+
+                        {% empty %}
+
+                        <tr>
+                            <td colspan="2"
+                                class="text-center text-muted">
+                                No yearly revenue data available.
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- USER GROWTH + PEAK HOURS -->
+    <div class="row g-4 mb-4">
+
+        <!-- USER GROWTH -->
+        <div class="col-lg-6">
+
+            <div class="card section-card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <h5 class="section-title">
+                        User Growth — Last 7 Days
+                    </h5>
+
+                    <table class="table table-hover">
+
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>New Users</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for item in user_growth %}
+
+                            <tr>
+                                <td>{{ item.day }}</td>
+
+                                <td>
+                                    <span class="badge bg-info">
+                                        {{ item.user_count }}
+                                    </span>
+                                </td>
+                            </tr>
+
+                            {% empty %}
+
+                            <tr>
+                                <td colspan="2"
+                                    class="text-center text-muted">
+                                    No user growth data available.
+                                </td>
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PEAK HOURS -->
+        <div class="col-lg-6">
+
+            <div class="card section-card shadow-sm h-100">
+
+                <div class="card-body">
+
+                    <h5 class="section-title">
+                        Peak Booking Hours
+                    </h5>
+
+                    {% if peak_hours %}
+
+                    <div class="alert alert-warning">
+                        <strong>Peak Hour:</strong>
+                        {{ peak_hours.0.hour }}:00
+                    </div>
+
+                    {% endif %}
+
+                    <table class="table table-hover">
+
+                        <thead>
+                            <tr>
+                                <th>Hour</th>
+                                <th>Bookings</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for item in peak_hours %}
+
+                            <tr>
+                                <td>
+                                    {{ item.hour }}:00
+                                </td>
+
+                                <td>
+                                    <strong>
+                                        {{ item.booking_count }}
+                                    </strong>
+                                </td>
+                            </tr>
+
+                            {% empty %}
+
+                            <tr>
+                                <td colspan="2"
+                                    class="text-center text-muted">
+                                    No booking data available.
+                                </td>
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- POPULAR SHOW TIMES -->
+    <div class="card section-card shadow-sm mb-4">
+
+        <div class="card-body">
+
+            <h5 class="section-title">
+                Most Popular Show Times
+            </h5>
+
+            <div class="table-responsive">
+
+                <table class="table table-hover">
+
+                    <thead>
+                        <tr>
+                            <th>Show Time</th>
+                            <th>Bookings</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for item in popular_show_times %}
+
+                        <tr>
+                            <td>
+                                {{ item.show_schedule__start_time }}
+                            </td>
+
+                            <td>
+                                <span class="badge bg-dark">
+                                    {{ item.booking_count }}
+                                </span>
+                            </td>
+                        </tr>
+
+                        {% empty %}
+
+                        <tr>
+                            <td colspan="2"
+                                class="text-center text-muted">
+                                No show-time data available.
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- SCREEN OCCUPANCY -->
+    <div class="card section-card shadow-sm mb-5">
+
+        <div class="card-body">
+
+            <h5 class="section-title">
+                Screen Occupancy
+            </h5>
+
+            <div class="table-responsive">
+
+                <table class="table table-hover">
+
+                    <thead>
+                        <tr>
+                            <th>Theater</th>
+                            <th>Screen</th>
+                            <th>Booked</th>
+                            <th>Total Seats</th>
+                            <th>Occupancy</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for screen in occupancy_data %}
+
+                        <tr>
+
+                            <td>
+                                {{ screen.theater.theater_name }}
+                            </td>
+
+                            <td>
+                                {{ screen.screen_name }}
+                            </td>
+
+                            <td>
+                                {{ screen.booked_seats }}
+                            </td>
+
+                            <td>
+                                {{ screen.total_seats }}
+                            </td>
+
+                            <td style="min-width:180px;">
+
+                                <div class="d-flex justify-content-between">
+                                    <span>
+                                        {{ screen.occupancy_percentage }}%
+                                    </span>
+                                </div>
+
+                                <div class="progress mt-1">
+
+                                    <div
+                                        class="progress-bar"
+                                        role="progressbar"
+                                        style="width: {{ screen.occupancy_percentage }}%;"
+                                    ></div>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                        {% empty %}
+
+                        <tr>
+                            <td colspan="5"
+                                class="text-center text-muted">
+                                No occupancy data available.
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- CHART.JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+    const revenueLabels = [
+        {% for item in daily_revenue %}
+            "{{ item.day }}",
+        {% endfor %}
+    ];
+
+    const revenueData = [
+        {% for item in daily_revenue %}
+            {{ item.revenue|default:0 }},
+        {% endfor %}
+    ];
+
+
+    const ctx = document.getElementById("revenueChart");
+
+    new Chart(ctx, {
+        type: "line",
+
+        data: {
+            labels: revenueLabels,
+
+            datasets: [{
+                label: "Revenue",
+
+                data: revenueData,
+
+                tension: 0.3,
+
+                fill: true
+            }]
+        },
+
+        options: {
+            responsive: true,
+
+            plugins: {
+                legend: {
+                    display: true
+                }
+            },
+
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+</script>
+
+{% endblock %}

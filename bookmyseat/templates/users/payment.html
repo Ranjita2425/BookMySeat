@@ -1,0 +1,122 @@
+{% extends "users/basic.html" %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <div class="card shadow mx-auto" style="max-width: 600px;">
+
+        <div class="card-body p-5">
+
+            <h2 class="text-center mb-4">
+                Payment
+            </h2>
+
+            <hr>
+
+            <h4>{{ booking.movie.name }}</h4>
+
+            <p>
+                <strong>Theater:</strong>
+                {{ booking.theater.theater_name }}
+                <br>
+
+                <strong>Screen:</strong>
+                {{ booking.show_schedule.screen.screen_name }}
+                <br>
+
+                <strong>Date:</strong>
+                {{ booking.show_schedule.show_date }}
+                <br>
+
+                <strong>Time:</strong>
+                {{ booking.show_schedule.start_time }}
+                -
+                {{ booking.show_schedule.end_time }}
+            </p>
+
+            <h5 class="mt-4">Selected Seats</h5>
+
+            <ul>
+                {% for item in bookings %}
+                    <li>
+                        {{ item.seat.seat_number }}
+                        - ₹{{ item.total_amount }}
+                    </li>
+                {% endfor %}
+            </ul>
+            <hr>
+            <h4 class="text-end">
+                Total: ₹{{ total_amount }}
+            </h4>
+            <div class="alert alert-warning text-center mt-3">
+    ⏳ Seats reserved for:
+    <strong id="countdown">02:00</strong>
+</div>
+
+<script>
+    const expiryTime = new Date(
+        "{{ booking.reservation_expires_at|date:'c' }}"
+    ).getTime();
+
+    const countdown = document.getElementById("countdown");
+
+    const timer = setInterval(function () {
+
+        const now = new Date().getTime();
+        const remaining = expiryTime - now;
+
+        if (remaining <= 0) {
+
+            clearInterval(timer);
+
+            countdown.innerHTML = "00:00";
+
+            alert(
+                "Your seat reservation has expired. Please select your seats again."
+            );
+
+            window.location.href = "{% url 'profile' %}";
+
+            return;
+        }
+
+        const minutes = Math.floor(
+            remaining / (1000 * 60)
+        );
+
+        const seconds = Math.floor(
+            (remaining % (1000 * 60)) / 1000
+        );
+
+        countdown.innerHTML =
+            String(minutes).padStart(2, "0") +
+            ":" +
+            String(seconds).padStart(2, "0");
+
+        }, 1000);
+        </script>
+            <a href="{% url 'change_seats' booking.id %}"
+            class="btn btn-outline-primary w-100 mt-3">
+                <i class="fas fa-exchange-alt me-2"></i>
+                Change Seats
+            </a>
+            <a href="{% url 'upi_payment' booking.id %}"
+            class="btn btn-success w-100 mt-3">
+                <i class="fas fa-mobile-alt me-2"></i>
+                 Pay Now with UPI
+            </a>
+            <div class="alert alert-info text-center mt-3 mb-0">
+    <strong>Payment Information</strong><br>
+    Your seats will remain reserved only for the remaining time shown above.
+    Complete the payment before the timer expires.
+</div>
+            <a href="{% url 'booking_history' %}"
+   class="btn btn-outline-secondary w-100 mt-3">
+    <i class="fas fa-times me-2"></i>
+    Cancel Payment
+</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

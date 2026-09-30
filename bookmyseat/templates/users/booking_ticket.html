@@ -1,0 +1,183 @@
+{% extends "users/basic.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <div class="card shadow-lg mx-auto" style="max-width:700px; border-radius:18px; overflow:hidden;">
+
+        <!-- Header -->
+        <div class="card-header bg-success text-white text-center py-4">
+            <h2 class="mb-1">✅ Booking Confirmed</h2>
+            <p class="mb-0">Your movie ticket has been booked successfully.</p>
+        </div>
+
+        <div class="card-body p-4">
+
+            <!-- Movie Name -->
+            <div class="text-center mb-4">
+                <h3 class="fw-bold">{{ booking.movie.name }}</h3>
+                <p class="text-muted mb-2">Booking ID: #{{ booking.id }}</p>
+
+                <img src="{% url 'booking_qr' booking.id %}"
+                     alt="Booking QR Code"
+                     width="170"
+                     height="170"
+                     class="border rounded p-2">
+
+                <p class="small text-muted mt-2">
+                    Scan this QR code at the theater entrance.
+                </p>
+            </div>
+
+            <hr>
+
+            <!-- Theater & Screen -->
+            <div class="row mb-3">
+                <div class="col-6">
+                    <small class="text-muted">THEATER</small>
+                    <h6>{{ booking.theater.theater_name }}</h6>
+                </div>
+
+                <div class="col-6 text-end">
+                    <small class="text-muted">SCREEN</small>
+                    <h6>{{ booking.show_schedule.screen.screen_name }}</h6>
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- Seats -->
+            <div class="mb-3">
+                <small class="text-muted">SELECTED SEATS</small>
+
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                    {% for item in bookings %}
+                        <span class="badge bg-primary fs-6 px-3 py-2">
+                            {{ item.seat.seat_number }}
+                        </span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- Date & Time -->
+            <div class="row mb-3">
+                <div class="col-6">
+                    <small class="text-muted">DATE</small>
+                    <h6>{{ booking.show_schedule.show_date }}</h6>
+                </div>
+
+                <div class="col-6 text-end">
+                    <small class="text-muted">SHOW TIME</small>
+                    <h6>
+                        {{ booking.show_schedule.start_time }}
+                        -
+                        {{ booking.show_schedule.end_time }}
+                    </h6>
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- Amount -->
+            <div class="row mb-3 align-items-center">
+                <div class="col-6">
+                    <small class="text-muted">TOTAL AMOUNT PAID</small>
+                </div>
+
+                <div class="col-6 text-end">
+                    <h3 class="text-success mb-0">
+                        ₹{{ total_amount }}
+                    </h3>
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- Status -->
+            <div class="row mb-4">
+                <div class="col-6 text-center">
+                    <small class="text-muted">BOOKING STATUS</small><br>
+
+                    <span class="badge bg-success px-3 py-2">
+                        {{ booking.booking_status }}
+                    </span>
+                </div>
+
+                <div class="col-6 text-center">
+    <small class="text-muted">PAYMENT STATUS</small><br>
+
+    <span class="badge bg-success px-3 py-2">
+        {{ booking.payment_status }}
+    </span>
+
+    <br>
+    <small class="text-muted">PAYMENT REFERENCE</small><br>
+
+    <strong>
+        {{ booking.payment_reference|default:"Not available" }}
+    </strong>
+</div>
+            </div>
+
+            <!-- Success Message -->
+            <div class="alert alert-success text-center">
+                <strong>🎉 Enjoy your movie!</strong><br>
+                Please arrive 15–20 minutes before the show starts.
+            </div>
+
+            <!-- Buttons -->
+            <div class="d-grid gap-2">
+
+                <a href="{% url 'booking_ticket' booking.id %}"
+                   class="btn btn-primary btn-lg">
+                    🎟️ View Ticket
+                </a>
+
+                <a href="{% url 'download_ticket' booking.id %}"
+                   class="btn btn-success btn-lg">
+                    ⬇️ Download Ticket
+                </a>
+
+                <button onclick="window.print()"
+                        class="btn btn-outline-dark btn-lg">
+                    🖨️ Print Ticket
+                </button>
+                <a href="{% url 'test_booking_email' booking.id %}"
+                    class="btn btn-outline-success mt-2">
+                    <i class="fas fa-envelope me-1"></i>
+                    Test Email Ticket
+                </a>
+
+                <div class="mt-3">
+                    <a href="{% url 'profile' %}">
+                    Back to Profile
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+
+.card{
+    border:none;
+}
+
+.badge{
+    border-radius:10px;
+}
+
+.alert{
+    border-radius:12px;
+}
+
+</style>
+
+{% endblock %}

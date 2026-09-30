@@ -1,0 +1,104 @@
+{% extends "users/basic.html" %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <h2 class="text-center mb-4">
+        My Booking History
+    </h2>
+
+    {% for booking in bookings %}
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+
+            <div class="row">
+
+                <div class="col-md-8">
+
+                    <h5>{{ booking.movie.name }}</h5>
+
+                    <p class="mb-1">
+                        <strong>Theater:</strong>
+                        {{ booking.theater.theater_name }}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Screen:</strong>
+                        {{ booking.show_schedule.screen.screen_name }}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Seat:</strong>
+                        {{ booking.seat.seat_number }}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Date:</strong>
+                        {{ booking.show_schedule.show_date }}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Time:</strong>
+                        {{ booking.show_schedule.start_time }}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Amount:</strong>
+                        ₹{{ booking.total_amount }}
+                    </p>
+
+                    <p class="mb-0">
+                        <strong>Status:</strong>
+                        {{ booking.booking_status }}
+                    </p>
+
+                </div>
+
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+
+                    {% if booking.booking_status == "Confirmed" or booking.booking_status == "Completed" %}
+
+                        <a href="{% url 'booking_ticket' booking.id %}"
+                       class="btn btn-primary">
+                        View Ticket
+                        </a>
+
+                        <a href="{% url 'download_ticket' booking.id %}"
+                       class="btn btn-success mt-2">
+                        Download PDF
+                        </a>
+                         <a href="{% url 'test_booking_email' booking.id %}"
+                        class="btn btn-outline-success mt-2">
+                        <i class="fas fa-envelope me-1"></i>
+                        Test Email Ticket
+                         </a>
+                    {% endif %}
+                    {% if booking.booking_status == "Cancelled" and booking.payment_status == "Failed" %}
+    <a href="{% url 'book_seats' booking.theater.id %}?show_schedule={{ booking.show_schedule.id }}"
+       class="btn btn-warning mt-2">
+        <i class="fas fa-redo me-1"></i>
+        Book Again
+    </a>
+{% endif %}
+                   
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    {% empty %}
+
+    <div class="alert alert-info text-center">
+        You have no booking history yet.
+    </div>
+
+    {% endfor %}
+
+</div>
+
+
+{% endblock %}

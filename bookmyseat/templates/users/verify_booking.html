@@ -1,0 +1,248 @@
+{% extends "users/basic.html" %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <div class="card shadow-lg mx-auto"
+         style="max-width: 650px; border-radius: 18px;">
+
+        <!-- Header -->
+        <div class="card-header bg-success text-white text-center py-4">
+
+            <h2 class="mb-1">
+                ✅ Valid Movie Ticket
+            </h2>
+
+            <p class="mb-0">
+                BookMySeat Ticket Verification
+            </p>
+
+        </div>
+
+
+        <div class="card-body p-4">
+
+            <!-- Movie -->
+            <div class="text-center mb-4">
+
+                <h3>
+                    {{ booking.movie.name }}
+                </h3>
+
+                <p class="text-muted">
+                    Booking ID: #{{ booking.id }}
+                </p>
+
+            </div>
+
+
+            <hr>
+
+
+            <!-- Theater / Screen -->
+
+            <div class="row mb-3">
+
+                <div class="col-6">
+
+                    <small class="text-muted">
+                        THEATER
+                    </small>
+
+                    <h6>
+                        {{ booking.theater.theater_name }}
+                    </h6>
+
+                </div>
+
+
+                <div class="col-6 text-end">
+
+                    <small class="text-muted">
+                        SCREEN
+                    </small>
+
+                    <h6>
+                        {{ booking.show_schedule.screen.screen_name }}
+                    </h6>
+
+                </div>
+
+            </div>
+
+
+            <hr>
+
+
+            <!-- Seats -->
+
+            <div class="mb-3">
+
+                <small class="text-muted">
+                    SELECTED SEATS
+                </small>
+
+
+                <div class="d-flex flex-wrap gap-2 mt-2">
+
+                    {% for item in bookings %}
+
+                        <span class="badge bg-primary fs-6 px-3 py-2">
+
+                            {{ item.seat.seat_number }}
+
+                        </span>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+
+            <hr>
+
+
+            <!-- Date / Time -->
+
+            <div class="row mb-3">
+
+                <div class="col-6">
+
+                    <small class="text-muted">
+                        DATE
+                    </small>
+
+                    <h6>
+                        {{ booking.show_schedule.show_date }}
+                    </h6>
+
+                </div>
+
+
+                <div class="col-6 text-end">
+
+                    <small class="text-muted">
+                        TIME
+                    </small>
+
+                    <h6>
+
+                        {{ booking.show_schedule.start_time }}
+
+                        -
+
+                        {{ booking.show_schedule.end_time }}
+
+                    </h6>
+
+                </div>
+
+            </div>
+
+
+            <hr>
+
+
+            <!-- Total -->
+
+            <div class="row mb-3">
+
+                <div class="col-6">
+
+                    <strong>
+                        TOTAL PAID
+                    </strong>
+
+                </div>
+
+
+                <div class="col-6 text-end">
+
+                    <h4 class="text-success">
+
+                        ₹{{ total_amount }}
+
+                    </h4>
+
+                </div>
+
+            </div>
+
+
+            <hr>
+
+
+            <!-- Status -->
+
+            <div class="text-center mt-4">
+
+                <div class="mb-3">
+
+                    <strong>
+                        Booking Status:
+                    </strong>
+
+                    <span class="badge bg-success ms-2">
+
+                        {{ booking.booking_status }}
+
+                    </span>
+
+                </div>
+
+
+                <div class="mb-3">
+
+                    <strong>
+                        Payment Status:
+                    </strong>
+
+                    <span class="badge bg-success ms-2">
+
+                        {{ booking.payment_status }}
+
+                    </span>
+
+                </div>
+
+
+                <div class="alert alert-success mt-4">
+
+                    <h5 class="mb-1">
+                        ✓ Ticket Verified
+                    </h5>
+
+                    <small>
+                        This is a valid BookMySeat booking.
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<style>
+
+.card {
+    border: none;
+}
+
+.badge {
+    border-radius: 10px;
+}
+
+.alert {
+    border-radius: 12px;
+}
+
+</style>
+
+{% endblock %}

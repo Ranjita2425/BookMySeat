@@ -1,0 +1,423 @@
+{% extends "users/basic.html" %}
+
+{% block content %}
+
+<div class="container py-5">
+
+  <div class="row">
+
+    <!-- ================= USER INFO ================= -->
+    <div class="col-lg-4 mb-4">
+
+      <div class="card shadow">
+
+        <div class="card-body text-center">
+
+          <div class="mb-3">
+            <i class="fas fa-user-circle fa-6x text-primary"></i>
+          </div>
+
+          <h3 class="card-title mb-0">
+            {{ user.username }}
+          </h3>
+
+          <p class="text-muted mb-3">
+            {{ user.email }}
+          </p>
+
+          <div class="d-flex justify-content-center">
+
+            <a
+              href="#"
+              class="btn btn-outline-primary me-2"
+            >
+              <i class="fas fa-envelope me-2"></i>
+              Message
+            </a>
+
+            <a
+              href="{% url 'password_reset' %}"
+              class="btn btn-outline-secondary"
+            >
+              <i class="fas fa-key me-2"></i>
+              Reset Password
+            </a>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ================= RIGHT SIDE ================= -->
+    <div class="col-lg-8">
+
+
+      <!-- ================= UPDATE PROFILE ================= -->
+      <div class="card shadow mb-4">
+
+        <div class="card-header bg-primary text-white">
+
+          <h4 class="mb-0">
+            <i class="fas fa-user-edit me-2"></i>
+            Update Profile
+          </h4>
+
+        </div>
+
+        <div class="card-body">
+
+          <form method="POST">
+
+            {% csrf_token %}
+
+            {% for field in u_form %}
+
+              <div class="mb-3">
+
+                <label
+                  for="{{ field.id_for_label }}"
+                  class="form-label"
+                >
+
+                  <i class="fas fa-
+                    {% if field.name == 'username' %}
+                      user
+                    {% elif field.name == 'email' %}
+                      envelope
+                    {% else %}
+                      info-circle
+                    {% endif %}
+                  me-2"></i>
+
+                  {{ field.label }}
+
+                </label>
+
+                {{ field.errors }}
+
+                {{ field }}
+
+                {% if field.help_text %}
+
+                  <small class="form-text text-muted">
+                    {{ field.help_text }}
+                  </small>
+
+                {% endif %}
+
+              </div>
+
+            {% endfor %}
+
+            <button
+              class="btn btn-primary w-100"
+              type="submit"
+            >
+              <i class="fas fa-save me-2"></i>
+              Update Profile
+            </button>
+            <a href="{% url 'booking_history' %}"
+              class="btn btn-outline-primary">
+              <i class="fas fa-ticket-alt me-1"></i>
+              My Booking History
+            </a>
+          </form>
+
+        </div>
+
+      </div>
+
+
+      <!-- ================= BOOKINGS ================= -->
+      <div class="card shadow">
+
+        <div class="card-header bg-success text-white">
+
+          <h4 class="mb-0">
+
+            <i class="fas fa-ticket-alt me-2"></i>
+
+            Your Bookings
+
+          </h4>
+
+        </div>
+
+
+        <div class="card-body">
+
+          {% if bookings %}
+
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+
+
+              {% for booking in bookings %}
+
+                <div class="col">
+
+                  <div class="card h-100 border-0 shadow-sm">
+
+                    <div class="card-body">
+
+
+                      <!-- MOVIE NAME -->
+                      <h5 class="card-title">
+
+                        {{ booking.movie.name }}
+
+                      </h5>
+
+
+                      <!-- BOOKING DETAILS -->
+                      <p class="card-text">
+
+                        <strong>Booking ID:</strong>
+                        #{{ booking.id }}
+                        <br>
+
+                        <strong>Theater:</strong>
+                        {{ booking.theater.theater_name }}
+                        <br>
+
+                        <strong>Screen:</strong>
+                        {{ booking.show_schedule.screen.screen_name }}
+                        <br>
+
+                        <strong>Seat:</strong>
+                        {{ booking.seat.seat_number }}
+                        <br>
+
+                        <strong>Amount:</strong>
+                        ₹{{ booking.total_amount }}
+                        <br>
+
+                        <strong>Show Date:</strong>
+                        {{ booking.show_schedule.show_date }}
+                        <br>
+
+                        <strong>Show Time:</strong>
+                        {{ booking.show_schedule.start_time }}
+                        -
+                        {{ booking.show_schedule.end_time }}
+                        <br>
+
+                        <strong>Booked At:</strong>
+                        {{ booking.booked_at|date:"F d, Y H:i" }}
+
+                      </p>
+
+
+                      <!-- ================= BOOKING STATUS ================= -->
+
+                      {% if booking.booking_status == "Confirmed" %}
+
+                        <span class="badge bg-success">
+                          Confirmed
+                        </span>
+
+                      {% elif booking.booking_status == "Completed" %}
+
+                        <span class="badge bg-primary">
+                          Completed
+                        </span>
+
+                      {% elif booking.booking_status == "Cancelled" %}
+
+                        <span class="badge bg-danger">
+                          Cancelled
+                        </span>
+
+                      {% else %}
+
+                        <span class="badge bg-warning text-dark">
+                          {{ booking.booking_status }}
+                        </span>
+
+                      {% endif %}
+
+
+                      <!-- ================= PAYMENT STATUS ================= -->
+
+                      {% if booking.payment_status == "Success" %}
+
+                        <span class="badge bg-success">
+                          Paid
+                        </span>
+
+                      {% elif booking.payment_status == "Failed" %}
+
+                        <span class="badge bg-danger">
+                          Payment Failed
+                        </span>
+
+                      {% else %}
+
+                        <span class="badge bg-warning text-dark">
+                          Payment Pending
+                        </span>
+
+                      {% endif %}
+
+
+                      <!-- ================= ACTION BUTTONS ================= -->
+
+                      {% if booking.payment_status == "Success" and booking.booking_status != "Cancelled" %}
+
+                        <div class="mt-3">
+
+
+                          <!-- VIEW TICKET -->
+
+                          <a
+                            href="{% url 'booking_ticket' booking.id %}"
+                            class="btn btn-primary btn-sm w-100 mb-2"
+                          >
+
+                            <i class="fas fa-ticket-alt me-2"></i>
+
+                            View Ticket
+
+                          </a>
+
+
+                          <!-- DOWNLOAD TICKET -->
+
+                          <a
+                            href="{% url 'download_ticket' booking.id %}"
+                            class="btn btn-success btn-sm w-100 mb-2">
+                            <i class="fas fa-download me-2"></i>
+                            Download Ticket
+                          </a>
+                          <a href="{% url 'booking_qr' booking.id %}"
+                          class="btn btn-info btn-sm w-100 mb-2">
+                          <i class="fas fa-qrcode me-2"></i>
+                            Booking QR Code
+                           </a>
+                          <!-- WRITE REVIEW -->
+
+                          {% if booking.booking_status == "Completed" %}
+
+                            <a href="{% url 'submit_review' booking.movie.id %}"
+                              class="btn btn-warning btn-sm w-100 mb-2">
+                              <i class="fas fa-star me-2"></i>
+                              Write Review
+                            </a>
+                          {% endif %}
+
+                          <!-- CANCEL BOOKING -->
+                          {% if booking.booking_status == "Confirmed" %}
+                            <form
+                              method="POST"
+                              action="{% url 'cancel_booking' booking.id %}"
+                              onsubmit="return confirm('Are you sure you want to cancel this ticket? This action cannot be undone.');"
+                            >
+                              {% csrf_token %}
+                              <button
+                                type="submit"
+                                class="btn btn-danger btn-sm w-100"
+                              >
+                                <i class="fas fa-times-circle me-2"></i>
+                                Cancel Booking
+                              </button>
+                            </form>
+                          {% endif %}
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+
+            <!-- NO BOOKINGS -->
+            <div class="text-center py-5">
+              <i class="fas fa-ticket-alt fa-4x text-muted mb-3"></i>
+              <p class="lead mb-0">
+
+                No bookings yet.
+                Time to plan your next movie night!
+
+              </p>
+
+            </div>
+
+
+          {% endif %}
+
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ================= FONT AWESOME ================= -->
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<!-- ================= CUSTOM CSS ================= -->
+
+<style>
+
+  body {
+    background-color: #f8f9fa;
+  }
+
+  .card {
+    border-radius: 15px;
+    border: none;
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .card:hover {
+    transform: translateY(-5px);
+  }
+
+  .card-header {
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+  }
+
+  form input,
+  form select,
+  form textarea {
+    display: block;
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #212529;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    transition:
+      border-color 0.15s ease-in-out,
+      box-shadow 0.15s ease-in-out;
+  }
+
+  form input:focus,
+  form select:focus,
+  form textarea:focus {
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow:
+      0 0 0 0.25rem
+      rgba(13, 110, 253, 0.25);
+  }
+
+  @media (max-width: 767.98px) {
+    .card-body {
+      padding: 1rem;
+    }
+  }
+</style>
+{% endblock %}

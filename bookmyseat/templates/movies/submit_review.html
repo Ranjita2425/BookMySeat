@@ -1,0 +1,118 @@
+{% extends "users/basic.html" %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-md-7">
+
+            <div class="card shadow-lg border-0">
+
+                <!-- Header -->
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h3 class="mb-0">
+                        ⭐ Write a Review
+                    </h3>
+                </div>
+
+                <div class="card-body p-4">
+
+                    <!-- Movie -->
+                    <div class="text-center mb-4">
+
+                        <h4>
+                            {{ movie.name }}
+                        </h4>
+
+                        <span class="badge bg-success">
+                            ✓ Verified Viewer
+                        </span>
+
+                    </div>
+
+                    <hr>
+
+                    <form method="POST">
+
+                        {% csrf_token %}
+
+                        <!-- Rating -->
+                        <div class="mb-4">
+
+                            <label class="form-label fw-bold">
+                                Your Rating
+                            </label>
+
+                            {{ form.rating.errors }}
+
+                            {{ form.rating }}
+
+                        </div>
+
+                        <!-- Review -->
+                        <div class="mb-4">
+
+                            <label class="form-label fw-bold">
+                                Your Review
+                            </label>
+
+                            {{ form.review.errors }}
+
+                            {{ form.review }}
+
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between">
+
+                            <a href="{% url 'movie_list' %}"
+                               class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+
+                            <button type="submit"
+                                    class="btn btn-primary">
+                                ⭐ Submit Review
+                            </button>
+
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+.card {
+    border-radius: 15px;
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+}
+
+textarea {
+    min-height: 130px;
+    resize: vertical;
+}
+
+.errorlist {
+    color: #dc3545;
+    font-size: 14px;
+    list-style: none;
+    padding: 0;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,402 @@
+{% extends "users/basic.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="text-center mb-5">Movies</h1>
+
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-8">
+            <form method="GET" action="{% url 'movie_list' %}" class="search-bar">
+                <div class="input-group">
+                    <input
+                        class="form-control form-control-lg"
+                        name="search"
+                        placeholder="Search for Movies, Events, Plays, Sports and Activities"
+                        type="text"
+                        value="{{ request.GET.search|default_if_none:'' }}"
+                        aria-label="Search for movies"
+                    />
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Movie Filters -->
+<div class="row justify-content-center mb-4">
+    <div class="col-md-6">
+
+        <form method="GET" action="{% url 'movie_list' %}">
+
+            <!-- Search -->
+            <input type="hidden"
+                   name="search"
+                   value="{{ request.GET.search|default_if_none:'' }}">
+
+            <!-- Category -->
+            <label class="form-label">Category</label>
+            <select name="category" class="form-select mb-3">
+                <option value="">Select Category</option>
+
+                {% for category in categories %}
+                    <option value="{{ category.id }}"
+                        {% if request.GET.category == category.id|stringformat:"s" %}
+                            selected
+                        {% endif %}>
+                        {{ category.category_name }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <!-- Language -->
+            <label class="form-label">Language</label>
+            <select name="language" class="form-select mb-3">
+                <option value="">Select Language</option>
+
+                {% for language in languages %}
+                    <option value="{{ language.id }}"
+                        {% if request.GET.language == language.id|stringformat:"s" %}
+                            selected
+                        {% endif %}>
+                        {{ language.language_name }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <!-- Release Date -->
+            <label class="form-label">Release Date</label>
+            <input type="date"
+                   name="release_date"
+                   class="form-control mb-3"
+                   value="{{ request.GET.release_date|default_if_none:'' }}">
+
+            <!-- Show Time -->
+            <label class="form-label">Show Time</label>
+            <input type="time"
+                   name="show_time"
+                   class="form-control mb-3"
+                   value="{{ request.GET.show_time|default_if_none:'' }}">
+
+            <!-- City -->
+            <label class="form-label">City</label>
+            <input type="text"
+                   name="city"
+                   class="form-control mb-3"
+                   placeholder="Enter city"
+                   value="{{ request.GET.city|default_if_none:'' }}">
+
+            <!-- Theater -->
+            <label class="form-label">Theater</label>
+            <select name="theater" class="form-select mb-3">
+                <option value="">Select Theater</option>
+
+                {% for theater in theaters %}
+                    <option value="{{ theater.id }}"
+                        {% if request.GET.theater == theater.id|stringformat:"s" %}
+                            selected
+                        {% endif %}>
+                        {{ theater.theater_name }} - {{ theater.city }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <!-- Rating -->
+            <label class="form-label">Rating</label>
+            <select name="rating" class="form-select mb-3">
+                <option value="">Select Rating</option>
+
+                <option value="4"
+                    {% if request.GET.rating == "4" %}selected{% endif %}>
+                    4+ ⭐
+                </option>
+
+                <option value="3"
+                    {% if request.GET.rating == "3" %}selected{% endif %}>
+                    3+ ⭐
+                </option>
+
+                <option value="2"
+                    {% if request.GET.rating == "2" %}selected{% endif %}>
+                    2+ ⭐
+                </option>
+
+                <option value="1"
+                    {% if request.GET.rating == "1" %}selected{% endif %}>
+                    1+ ⭐
+                </option>
+            </select>
+
+            <!-- Sort -->
+            <label class="form-label">Sort Movies</label>
+            <select name="sort" class="form-select mb-3">
+                <option value="">Sort Movies</option>
+
+                <option value="newest"
+                    {% if request.GET.sort == "newest" %}selected{% endif %}>
+                    Newest Releases
+                </option>
+
+                <option value="rating"
+                    {% if request.GET.sort == "rating" %}selected{% endif %}>
+                    Highest Rated
+                </option>
+
+                <option value="popular"
+                    {% if request.GET.sort == "popular" %}selected{% endif %}>
+                    Most Popular
+                </option>
+
+                <option value="price_low"
+                    {% if request.GET.sort == "price_low" %}selected{% endif %}>
+                    Price: Low to High
+                </option>
+
+                <option value="price_high"
+                    {% if request.GET.sort == "price_high" %}selected{% endif %}>
+                    Price: High to Low
+                </option>
+            </select>
+
+            <button type="submit" class="btn btn-primary w-100">
+                Apply Filters
+            </button>
+
+        </form>
+
+    </div>
+</div>
+
+<!-- Clear Filters -->
+<div class="text-center mb-4">
+    <a href="{% url 'movie_list' %}"
+       class="btn btn-outline-danger">
+        Clear All Filters
+    </a>
+</div>
+
+    <p class="text-muted text-center mb-4">
+    {{ movie_count }} movie{{ movie_count|pluralize }} found
+</p>
+
+    <div class="row" id="movieList">
+        {% for movie in movies %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+
+    {% if movie.posters.first %}
+        <img src="{{ movie.posters.first.image.url }}"
+             class="card-img-top"
+             alt="{{ movie.name }}"
+             style="height: 300px; object-fit: cover;">
+    {% endif %}
+
+    <div class="card-body">
+                        <i class="fas fa-star text-warning"></i> {{ movie.average_rating|floatformat:1 }}
+                    </p>
+                    <p class="card-text">
+                        <small class="text-muted">
+                            <i class="fas fa-users"></i> Cast:
+{% for cast in movie.cast_members.all %}
+    {{ cast.full_name }}{% if not forloop.last %}, {% endif %}
+{% empty %}
+    Not available
+{% endfor %}
+                        </small>
+                    </p>
+                </div>
+                <div class="card-footer bg-white border-top-0">
+                    <a href="{% url 'theater_list' movie.id %}" class="btn btn-outline-primary btn-block">
+                        View Theaters <i class="fas fa-chevron-right ml-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center">
+            <p class="lead">No movies found. Try a different search term.</p>
+        </div>
+        {% endfor %}
+</div>
+{% if recently_viewed_movies %}
+<div class="mt-5">
+    <h3 class="mb-4">Recently Viewed Movies</h3>
+
+    <div class="row">
+        {% for movie in recently_viewed_movies %}
+        <div class="col-md-4 mb-4">
+
+            <div class="card h-100 shadow-sm">
+
+                {% if movie.posters.all %}
+                    {% with poster=movie.posters.all|first %}
+                        {% if poster %}
+                            <img
+                                src="{{ poster.image.url }}"
+                                class="card-img-top"
+                                style="height: 250px; object-fit: cover;"
+                                alt="{{ movie.name }}"
+                            >
+                        {% endif %}
+                    {% endwith %}
+                {% endif %}
+
+                <div class="card-body">
+                    <h5 class="card-title">
+                        {{ movie.name }}
+                    </h5>
+
+                    <p class="text-muted mb-2">
+                        {{ movie.language.language_name }}
+                    </p>
+
+                    <p>
+                        ⭐ {{ movie.average_rating|floatformat:1 }}
+                    </p>
+                </div>
+
+                <div class="card-footer bg-white">
+                    <a
+                        href="{% url 'theater_list' movie.id %}"
+                        class="btn btn-primary w-100"
+                    >
+                        View Movie
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% if movies.has_other_pages %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+
+        {% if movies.has_previous %}
+        <li class="page-item">
+            <a class="page-link"
+   href="?search={{ request.GET.search|urlencode }}&category={{ request.GET.category }}&language={{ request.GET.language }}&sort={{ request.GET.sort }}&page={{ movies.previous_page_number }}">
+    Previous
+</a>
+        </li>
+        {% endif %}
+
+        <a class="page-link"
+   href="?search={{ request.GET.search|urlencode }}&category={{ request.GET.category }}&language={{ request.GET.language }}&sort={{ request.GET.sort }}&page={{ movies.next_page_number }}">
+    Next
+</a>
+
+        {% if movies.has_next %}
+        <li class="page-item">
+            <a class="page-link"
+               href="?search={{ request.GET.search|urlencode }}&category={{ request.GET.category }}&sort={{ request.GET.sort }}&page={{ movies.next_page_number }}">
+                Next
+            </a>
+        </li>
+        {% endif %}
+
+    </ul>
+</nav>
+{% endif %}
+</div>
+{% if recommended_movies %}
+<div class="mt-5">
+    <h2 class="text-center mb-4">Recommended for You</h2>
+
+    <div class="row">
+        {% for movie in recommended_movies %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+
+                {% if movie.posters.first %}
+                    <img src="{{ movie.posters.first.image.url }}"
+                         class="card-img-top"
+                         style="height: 300px; object-fit: cover;"
+                         alt="{{ movie.name }}">
+                {% endif %}
+
+                <div class="card-body">
+                    <h5 class="card-title">{{ movie.name }}</h5>
+
+                    <p>
+                        ⭐ {{ movie.average_rating }}
+                    </p>
+
+                    <p>
+                        {{ movie.category.category_name }}
+                        {% if movie.language %}
+                            | {{ movie.language.language_name }}
+                        {% endif %}
+                    </p>
+                </div>
+
+                <div class="card-footer">
+                    <a href="{% url 'theater_list' movie.id %}"
+                       class="btn btn-primary">
+                        View Movie
+                    </a>
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+<!-- Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+<style>
+    .card {
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+    }
+</style>
+
+<script>
+    $(document).ready(function() {
+        // Add animation to cards on hover
+        $('.card').hover(
+            function() { $(this).addClass('shadow'); },
+            function() { $(this).removeClass('shadow'); }
+        );
+
+        // Implement client-side filtering
+        $('input[name="search"]').on('input', function() {
+            var searchTerm = $(this).val().toLowerCase();
+            $('#movieList .col-md-4').each(function() {
+                var movieTitle = $(this).find('.card-title').text().toLowerCase();
+                if (movieTitle.includes(searchTerm)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        });
+    });
+</script>
+<!-- <h1>Movies</h1>
+<ul>
+    {% for movie in movies%}
+    <li>
+        <img src="{{movie.image.url}}" alt="image" >
+        <strong>{{movie.name}}</strong>{{movie.rating}}
+        <p>Cast:{{movie.cast}}</p>
+        <a href="{% url 'theater_list' movie.id %}">View Theaters</a>
+    </li>
+    {% endfor %}
+</ul> -->
+{% endblock %}

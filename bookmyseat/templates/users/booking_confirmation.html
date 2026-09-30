@@ -1,0 +1,72 @@
+{% extends "users/basic.html" %}
+
+{% block content %}
+
+<div class="container py-5">
+    <div class="card shadow mx-auto text-center" style="max-width: 600px;">
+        <div class="card-body p-5">
+
+            <div class="text-success mb-3">
+                <i class="fas fa-check-circle fa-5x"></i>
+            </div>
+
+            <h2 class="text-success">Booking Confirmed!</h2>
+
+            <p class="text-muted">
+                Your movie ticket has been booked successfully.
+            </p>
+
+            <hr>
+
+            <h4>{{ booking.movie.name }}</h4>
+
+            <p>
+                <strong>Booking ID:</strong> #{{ booking.id }}<br>
+                <strong>Theater:</strong> {{ booking.theater.theater_name }}<br>
+                <strong>Screen:</strong>
+                {{ booking.show_schedule.screen.screen_name }}<br>
+                <strong>Seat:</strong> {{ booking.seat.seat_number }}<br>
+                <strong>Date:</strong> {{ booking.show_schedule.show_date }}<br>
+                <strong>Time:</strong>
+                {{ booking.show_schedule.start_time }}
+                -
+                {{ booking.show_schedule.end_time }}<br>
+                <strong>Amount:</strong> ₹{{ booking.total_amount }}
+                <br>
+<strong>Payment:</strong>
+<span class="text-success">
+    {{ booking.payment_status }}
+</span>
+            </p>
+
+           <div class="mt-4">
+
+    <a
+        href="{% url 'booking_ticket' booking.id %}"
+        class="btn btn-primary me-2"
+    >
+        <i class="fas fa-ticket-alt me-2"></i>
+        View Ticket
+    </a>
+
+    <a
+        href="{% url 'download_ticket' booking.id %}"
+        class="btn btn-success me-2"
+    >
+        <i class="fas fa-download me-2"></i>
+        Download Ticket
+    </a>
+
+    <a
+        href="{% url 'profile' %}"
+        class="btn btn-secondary"
+    >
+        <i class="fas fa-user me-2"></i>
+        My Bookings
+    </a>
+
+</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

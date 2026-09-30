@@ -1,0 +1,394 @@
+{% extends "users/basic.html" %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <div class="card shadow mx-auto" style="max-width: 600px;">
+
+        <div class="card-body p-5">
+
+            <!-- ================= HEADER ================= -->
+
+            <h2 class="text-center mb-4">
+                <i class="fas fa-mobile-alt me-2"></i>
+                UPI Payment
+            </h2>
+
+            <hr>
+
+            <!-- ================= BOOKING DETAILS ================= -->
+
+            <div class="alert alert-light border">
+
+                <h5 class="mb-3">
+                    {{ booking.movie.name }}
+                </h5>
+
+                <p class="mb-1">
+                    <strong>Theater:</strong>
+                    {{ booking.theater.theater_name }}
+                </p>
+
+                <p class="mb-1">
+                    <strong>Screen:</strong>
+                    {{ booking.show_schedule.screen.screen_name }}
+                </p>
+
+                <p class="mb-1">
+                    <strong>Selected Seats:</strong>
+
+                    <ul class="mb-0 mt-2">
+                        {% for item in bookings %}
+                        <li>
+                        {{ item.seat.seat_number }}
+                        - ₹{{ item.total_amount }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </p>
+
+                <p class="mb-1">
+                    <strong>Date:</strong>
+                    {{ booking.show_schedule.show_date }}
+                </p>
+
+                <p class="mb-0">
+                    <strong>Time:</strong>
+                    {{ booking.show_schedule.start_time }}
+                    -
+                    {{ booking.show_schedule.end_time }}
+                </p>
+
+            </div>
+
+            <!-- ================= AMOUNT ================= -->
+
+            <div class="text-center my-4">
+
+                <p class="text-muted mb-1">
+                    Total Amount
+                </p>
+
+                
+                <h2 class="text-success">
+                    ₹{{ total_amount }}
+                </h2>
+            </div>
+            <hr>
+            <!-- ================= UPI OPTIONS ================= -->
+            <h5 class="mb-3">
+                Select UPI Payment Option
+            </h5>
+
+            <div class="row g-3">
+
+                <!-- GOOGLE PAY -->
+
+                <div class="col-md-4">
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-primary w-100 py-3"
+                        onclick="selectUPI('Google Pay')">
+
+                        <i class="fab fa-google-pay fa-lg"></i>
+
+                        <br>
+
+                        Google Pay
+
+                    </button>
+
+                </div>
+
+
+                <!-- PHONEPE -->
+
+                <div class="col-md-4">
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-success w-100 py-3"
+                        onclick="selectUPI('PhonePe')">
+
+                        <i class="fas fa-mobile-alt fa-lg"></i>
+
+                        <br>
+
+                        PhonePe
+
+                    </button>
+
+                </div>
+
+
+                <!-- PAYTM -->
+
+                <div class="col-md-4">
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-info w-100 py-3"
+                        onclick="selectUPI('Paytm')">
+
+                        <i class="fas fa-wallet fa-lg"></i>
+
+                        <br>
+
+                        Paytm
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================= OR ================= -->
+
+            <div class="text-center my-4">
+
+                <span class="text-muted">
+                    OR
+                </span>
+
+            </div>
+
+
+            <!-- ================= PAYMENT FORM ================= -->
+
+            <form
+                method="POST"
+                id="paymentForm">
+
+                {% csrf_token %}
+
+                <label
+                    for="upi_id"
+                    class="form-label">
+
+                    <strong>
+                        Enter UPI ID
+                    </strong>
+
+                </label>
+
+
+                <input
+                    type="text"
+                    name="upi_id"
+                    id="upi_id"
+                    class="form-control"
+                    placeholder="example@upi"
+                    autocomplete="off"
+                    required
+                >
+
+
+                <div
+                    id="upiError"
+                    class="text-danger mt-2"
+                    style="display:none;">
+
+                    Please enter a valid UPI ID.
+
+                </div>
+
+
+                <!-- ================= PAY BUTTON ================= -->
+
+                <button
+                    type="submit"
+                    id="payButton"
+                    class="btn btn-success w-100 mt-4 py-2">
+                    <span id="payText">
+                        <i class="fas fa-lock me-2"></i>
+                        Pay ₹{{ total_amount }}
+                    </span>
+                    <span
+                        id="loadingText"
+                        style="display:none;">
+                        <span
+                            class="spinner-border spinner-border-sm me-2">
+                        </span>
+                        Processing Payment...
+                    </span>
+                </button>
+                <button
+    type="submit"
+    name="payment_result"
+    value="failed"
+    class="btn btn-outline-danger w-100 mt-3">
+
+    <i class="fas fa-times-circle me-2"></i>
+    Simulate Failed Payment
+</button>
+            </form>
+            <!-- ================= PROCESSING MESSAGE ================= -->
+            <div
+                id="paymentProcessing"
+                class="alert alert-info text-center mt-3"
+                style="display:none;">
+                <span
+                    class="spinner-border spinner-border-sm me-2">
+                </span>
+                Processing your UPI payment...
+
+                <br>
+
+                <small>
+                    Please do not refresh or close this page.
+                </small>
+
+            </div>
+
+
+            <!-- ================= SECURITY MESSAGE ================= -->
+
+            <div class="text-center text-muted mt-4">
+
+                <small>
+                    <i class="fas fa-shield-alt me-1"></i>
+                    Secure UPI Payment
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= JAVASCRIPT ================= -->
+<script>
+
+function selectUPI(app) {
+    const upiInput = document.getElementById("upi_id");
+    upiInput.value = "";
+    upiInput.focus();
+    alert(
+        app +
+        " selected.\n\n" +
+        "Please enter your UPI ID to continue."
+    );
+
+}
+document.getElementById("paymentForm").addEventListener(
+    "submit",
+    function(event) {
+
+        const upiInput =
+            document.getElementById("upi_id");
+
+        const upiError =
+            document.getElementById("upiError");
+
+        const upiID =
+            upiInput.value.trim();
+
+        const upiPattern =
+            /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+$/;
+
+
+        if (!upiPattern.test(upiID)) {
+
+            event.preventDefault();
+
+            upiError.style.display = "block";
+
+            upiInput.focus();
+
+            return;
+
+        }
+
+
+        upiError.style.display = "none";
+
+
+        // Disable button to prevent double click
+
+        const payButton =
+            document.getElementById("payButton");
+
+        payButton.disabled = true;
+
+
+        // Change button text
+
+        document.getElementById(
+            "payText"
+        ).style.display = "none";
+
+
+        document.getElementById(
+            "loadingText"
+        ).style.display = "inline";
+
+
+        // Show processing message
+
+        document.getElementById(
+            "paymentProcessing"
+        ).style.display = "block";
+
+    }
+);
+
+</script>
+
+
+<!-- ================= FONT AWESOME ================= -->
+
+<link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+>
+
+
+<!-- ================= CSS ================= -->
+
+<style>
+
+.payment-option {
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+
+}
+
+
+.payment-option:hover {
+
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+#upi_id {
+    height: 48px;
+}
+
+#payButton {
+
+    font-size: 17px;
+
+    font-weight: 600;
+
+}
+
+
+.card {
+
+    border-radius: 15px;
+
+}
+
+
+.alert {
+    border-radius: 10px;
+}
+
+</style>
+
+{% endblock %}

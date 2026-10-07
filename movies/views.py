@@ -1,10 +1,12 @@
-from datetime import datetime
+from datetime import datetime,timedelta
+from http import client
+from http import client
 from io import BytesIO
 from itertools import count
-import uuid
 from django.core import paginator
 from django.core.paginator import Paginator
-import qrcode
+from django.template import context
+from django.template import context
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, models, transaction
@@ -25,6 +27,9 @@ from django.core.exceptions import PermissionDenied
 from io import BytesIO
 from reportlab.pdfgen import canvas
 from django.http import HttpResponse
+from django.conf import settings
+import uuid,qrcode,razorpay
+
 
 # ============================================================
 # MOVIE LIST
@@ -193,59 +198,179 @@ def theater_list(request, movie_id):
         Movie,
         id=movie_id
     )
-    recently_viewed = request.session.get("recently_viewed", [])
 
-    recently_viewed = [
-        movie_id for movie_id in recently_viewed
-        if movie_id != movie.id
-    ]
-
-    recently_viewed.insert(0, movie.id)
-
-    request.session["recently_viewed"] = recently_viewed[:6]
-
-    # Store recently viewed movies
-    recently_viewed = request.session.get("recently_viewed", [])
-
-    if movie.id in recently_viewed:
-        recently_viewed.remove(movie.id)
-
-    recently_viewed.insert(0, movie.id)
-    recently_viewed = recently_viewed[:6]
-
-    request.session["recently_viewed"] = recently_viewed
+    # ============================================================
+    # YOUTUBE TRAILER
+    # ============================================================
 
     youtube_embed_url = None
 
     if movie.trailer_url:
-        parsed_url = urlparse(movie.trailer_url)
+
+        parsed_url = urlparse(
+            movie.trailer_url
+        )
 
         if parsed_url.hostname in [
             "youtube.com",
             "www.youtube.com",
             "m.youtube.com"
         ]:
+
             video_id = parse_qs(
                 parsed_url.query
-            ).get("v", [None])[0]
+            ).get(
+                "v",
+                [None]
+            )[0]
 
             if video_id:
+
                 youtube_embed_url = (
                     f"https://www.youtube.com/embed/{video_id}"
                 )
+
         elif parsed_url.hostname == "youtu.be":
+
             video_id = parsed_url.path.strip("/")
+
             if video_id:
+
                 youtube_embed_url = (
                     f"https://www.youtube.com/embed/{video_id}"
                 )
+
+    # ============================================================
+    # DATE CALENDAR - 7 DAYS FROM RELEASE DATE
+    # ============================================================
+
+    available_dates = []
+
+    if movie.release_date:
+
+        for i in range(7):
+
+            current_date = (
+                movie.release_date
+                + timedelta(days=i)
+            )
+
+            available_dates.append(
+                current_date
+            )
+
+    # ============================================================
+    # SELECTED DATE
+    # ============================================================
+
+    selected_date_string = request.GET.get(
+        "date"
+    )
+
+    selected_date = None
+
+    if selected_date_string:
+
+        try:
+
+            selected_date = datetime.strptime(
+                selected_date_string,
+                "%Y-%m-%d"
+            ).date()
+
+        except ValueError:
+
+            selected_date = None
+
+    # Default to first available date
+
+    if (
+        selected_date not in available_dates
+        and available_dates
+    ):
+
+        selected_date = available_dates[0]
+
+    # ============================================================
+    # SHOW SCHEDULES FOR SELECTED DATE
+    # ============================================================
+
+    # ============================================================
+# DATE SELECTION
+# ============================================================
+
+    today = timezone.localdate()
+
+    if movie.release_date:
+        first_available_date = max(
+            movie.release_date,
+            today
+       )
+    else:
+         first_available_date = today
+
+    # Show dates from the first valid date until the end of this month
+    last_available_date = today.replace(
+        day=31
+    )
+
+    available_dates = []
+
+    current_date = first_available_date
+
+    while current_date <= last_available_date:
+        available_dates.append(current_date)
+        current_date += timedelta(days=1)
+
+    selected_date_string = request.GET.get("date")
+
+    selected_date = None
+
+    if selected_date_string:
+        try:
+            selected_date = datetime.strptime(
+                selected_date_string,
+                "%Y-%m-%d"
+            ).date()
+        except ValueError:
+            selected_date = None
+
+    if selected_date not in available_dates:
+        selected_date = available_dates[0]
+
+# ============================================================
+# SHOWS FOR SELECTED DATE
+# ============================================================
+
     schedules = ShowSchedule.objects.filter(
         movie=movie,
+        show_date=selected_date,
         is_active=True
     ).select_related(
         "screen",
         "screen__theater"
+    ).order_by(
+        "screen__theater__theater_name",
+        "start_time"
     )
+
+    if selected_date:
+
+        schedules = schedules.filter(
+            show_date=selected_date
+        )
+
+    schedules = schedules.select_related(
+        "screen",
+        "screen__theater"
+    ).order_by(
+        "screen__theater__theater_name",
+        "start_time"
+    )
+
+    # ============================================================
+    # REVIEWS
+    # ============================================================
 
     reviews = Review.objects.filter(
         movie=movie,
@@ -256,7 +381,10 @@ def theater_list(request, movie_id):
         "-created_at"
     )
 
-    # Similar movies based on category OR language
+    # ============================================================
+    # SIMILAR MOVIES
+    # ============================================================
+
     similar_movies = Movie.objects.filter(
         category=movie.category
     ).exclude(
@@ -264,12 +392,17 @@ def theater_list(request, movie_id):
     )
 
     if movie.language:
+
         similar_movies = similar_movies.filter(
             language=movie.language
         )
 
     similar_movies = similar_movies[:6]
-    # Trending movies
+
+    # ============================================================
+    # TRENDING MOVIES
+    # ============================================================
+
     trending_movies = Movie.objects.filter(
         is_trending=True
     ).exclude(
@@ -277,7 +410,11 @@ def theater_list(request, movie_id):
     ).order_by(
         "-created_at"
     )[:6]
-# Recently released movies
+
+    # ============================================================
+    # RECENTLY RELEASED
+    # ============================================================
+
     recent_movies = Movie.objects.filter(
         release_date__isnull=False
     ).exclude(
@@ -286,11 +423,9 @@ def theater_list(request, movie_id):
         "-release_date"
     )[:6]
 
-    recently_viewed_movies = Movie.objects.filter(
-        id__in=recently_viewed
-    ).exclude(
-        id=movie.id
-    )
+    # ============================================================
+    # FINAL RESPONSE
+    # ============================================================
 
     return render(
         request,
@@ -303,7 +438,10 @@ def theater_list(request, movie_id):
             "trending_movies": trending_movies,
             "recent_movies": recent_movies,
             "youtube_embed_url": youtube_embed_url,
-            "recently_viewed_movies": recently_viewed_movies,
+
+            # New date-selection data
+            "available_dates": available_dates,
+            "selected_date": selected_date,
         }
     )
 
@@ -1083,7 +1221,7 @@ def pay_booking(request, booking_id):
 
 @login_required(login_url="/login/")
 def upi_payment(request, booking_id):
-
+    return HttpResponse("UPI VIEW IS WORKING")
     booking = get_object_or_404(
         Booking,
         id=booking_id,
@@ -1098,6 +1236,24 @@ def upi_payment(request, booking_id):
         booking_status="Pending",
         payment_status="Pending"
     )
+
+    client = razorpay.Client(
+        auth=(
+            settings.RAZORPAY_KEY_ID,
+            settings.RAZORPAY_KEY_SECRET
+        )
+    )
+
+    total_amount = related_bookings.aggregate(
+        total=models.Sum("total_amount")
+    )["total"] or 0
+
+    razorpay_order = client.order.create({
+        "amount": int(total_amount * 100),
+        "currency": "INR",
+        "receipt": f"booking_{booking.id}",
+        "payment_capture": 1
+    })
 
     if request.method == "POST":
 
@@ -1124,15 +1280,24 @@ def upi_payment(request, booking_id):
         total=models.Sum("total_amount")
     )["total"] or 0
 
+    context = {
+        "booking": booking,
+        "bookings": related_bookings,
+        "total_amount": total_amount,
+        "razorpay_key_id": "TEST_FROM_VIEW",
+        "razorpay_order_id": razorpay_order["id"],
+    }
+
+    print("VIEW KEY:", repr(context["razorpay_key_id"]))
+
     return render(
         request,
-        "movies/upi_payment.html",
-        {
-            "booking": booking,
-            "bookings": related_bookings,
-            "total_amount": total_amount,
-        }
+        "users/upi_payment.html",
+        context
     )
+   
+    
+    
 # ============================================================
 # CANCEL BOOKING
 # ============================================================

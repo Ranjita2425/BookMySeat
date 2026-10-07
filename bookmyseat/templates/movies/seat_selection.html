@@ -13,16 +13,12 @@
                 <div class="card-body">
 
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
-
                         <div>
-
                             <h4 class="card-title">
                                 {{ theater.theater_name }}
                             </h4>
 
-                            {% if selected_schedule %}
-                            
-
+                            {% if selected_schedule %}                      
                                 <p class="card-text text-muted">
                                     {{ selected_schedule.movie.name }}
                                     |
@@ -166,73 +162,187 @@
 
                         <!-- Seats -->
 
-                        <div
-                            class="seat-container d-flex justify-content-center flex-wrap mb-4"
+                       <!-- Seats -->
+
+<div class="cinema-seat-layout">
+
+    <!-- RECLINER -->
+    <div class="seat-category">
+
+        <h6 class="seat-category-title">
+            RECLINER
+        </h6>
+
+        <div class="seat-row">
+
+            {% for seat in seats %}
+
+                {% if seat.seat_type == "RECLINER" %}
+
+                    {% if not seat.is_active %}
+
+                        <div class="seat inactive">
+                            {{ seat.seat_number }}
+                        </div>
+
+                    {% elif seat.id in booked_seat_ids %}
+
+                        <div class="seat booked">
+                            {{ seat.seat_number }}
+                        </div>
+
+                    {% elif seat.id in reserved_seat_ids %}
+
+                        <div class="seat reserved">
+                            {{ seat.seat_number }}
+                        </div>
+
+                    {% else %}
+
+                        <input
+                            type="checkbox"
+                            name="seats"
+                            value="{{ seat.id }}"
+                            id="seat-{{ seat.id }}"
+                            class="seat-checkbox"
                         >
 
-                            {% if seats %}
+                        <label
+                            for="seat-{{ seat.id }}"
+                            class="seat-label"
+                        >
+                            {{ seat.seat_number }}
+                        </label>
 
-                                {% for seat in seats %}
+                    {% endif %}
 
-    <div class="seat-wrapper">
+                {% endif %}
 
-        {% if not seat.is_active %}
+            {% endfor %}
 
-            <div class="seat inactive">
-                {{ seat.seat_number }}
-            </div>
-
-        {% elif seat.id in booked_seat_ids %}
-
-            <div class="seat booked">
-                {{ seat.seat_number }}
-            </div>
-
-        {% elif seat.id in reserved_seat_ids %}
-
-            <div class="seat reserved">
-                {{ seat.seat_number }}
-            </div>
-
-        {% else %}
-
-            <input
-                type="checkbox"
-                name="seats"
-                value="{{ seat.id }}"
-                id="seat-{{ seat.id }}"
-                class="seat-checkbox"
-            >
-
-            <label
-                for="seat-{{ seat.id }}"
-                class="seat-label"
-            >
-                {{ seat.seat_number }}
-            </label>
-
-        {% endif %}
+        </div>
 
     </div>
 
-{% empty %}
 
-    <p class="text-muted text-center w-100">
-        No seats are available for this show.
-    </p>
+    <!-- PREMIUM -->
+    <div class="seat-category">
 
-{% endfor %}
+        <h6 class="seat-category-title">
+            PREMIUM
+        </h6>
 
-                            {% else %}
+        <div class="seat-grid">
 
-                                <p class="text-muted text-center w-100">
-                                    No seats are available for this show.
-                                </p>
+            {% for seat in seats %}
 
-                            {% endif %}
+                {% if seat.seat_type == "PREMIUM" %}
 
+                    {% if not seat.is_active %}
+
+                        <div class="seat inactive">
+                            {{ seat.seat_number }}
                         </div>
 
+                    {% elif seat.id in booked_seat_ids %}
+
+                        <div class="seat booked">
+                            {{ seat.seat_number }}
+                        </div>
+
+                    {% elif seat.id in reserved_seat_ids %}
+
+                        <div class="seat reserved">
+                            {{ seat.seat_number }}
+                        </div>
+
+                    {% else %}
+
+                        <input
+                            type="checkbox"
+                            name="seats"
+                            value="{{ seat.id }}"
+                            id="seat-{{ seat.id }}"
+                            class="seat-checkbox"
+                        >
+
+                        <label
+                            for="seat-{{ seat.id }}"
+                            class="seat-label"
+                        >
+                            {{ seat.seat_number }}
+                        </label>
+
+                    {% endif %}
+
+                {% endif %}
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+
+    <!-- REGULAR -->
+    <div class="seat-category">
+
+        <h6 class="seat-category-title">
+            REGULAR
+        </h6>
+
+        <div class="seat-grid">
+
+            {% for seat in seats %}
+
+                {% if seat.seat_type == "REGULAR" %}
+
+                    {% if not seat.is_active %}
+
+                        <div class="seat inactive">
+                            {{ seat.seat_number }}
+                        </div>
+
+                    {% elif seat.id in booked_seat_ids %}
+
+                        <div class="seat booked">
+                            {{ seat.seat_number }}
+                        </div>
+
+                    {% elif seat.id in reserved_seat_ids %}
+
+                        <div class="seat reserved">
+                            {{ seat.seat_number }}
+                        </div>
+
+                    {% else %}
+
+                        <input
+                            type="checkbox"
+                            name="seats"
+                            value="{{ seat.id }}"
+                            id="seat-{{ seat.id }}"
+                            class="seat-checkbox"
+                        >
+
+                        <label
+                            for="seat-{{ seat.id }}"
+                            class="seat-label"
+                        >
+                            {{ seat.seat_number }}
+                        </label>
+
+                    {% endif %}
+
+                {% endif %}
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</div>
 
                         <!-- Seat Legend -->
 
@@ -345,13 +455,73 @@ body {
    SEAT WRAPPER
 ========================= */
 
-.seat-wrapper {
-    margin: 5px;
+/* =========================
+   CINEMA SEAT LAYOUT
+========================= */
+
+.cinema-seat-layout {
+    width: 100%;
+    max-width: 850px;
+    margin: 0 auto 30px;
+}
+
+.seat-category {
+    margin-bottom: 30px;
+}
+
+.seat-category-title {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 15px;
+    letter-spacing: 1px;
 }
 
 
 /* =========================
-   HIDE REAL CHECKBOX
+   SEAT ROW
+========================= */
+
+.seat-row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+
+/* =========================
+   SEAT GRID WITH AISLE
+========================= */
+
+.seat-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(6, 1fr)
+        25px
+        repeat(6, 1fr);
+
+    gap: 10px;
+    justify-content: center;
+}
+
+
+/*
+    24 seats:
+    6 seats | aisle | 6 seats
+    6 seats | aisle | 6 seats
+*/
+
+.seat-grid > *:nth-child(13) {
+    grid-column: 1;
+}
+
+.seat-grid > *:nth-child(14) {
+    grid-column: 2;
+}
+
+
+/* =========================
+   HIDE CHECKBOX
 ========================= */
 
 .seat-checkbox {
@@ -365,26 +535,34 @@ body {
    AVAILABLE SEAT
 ========================= */
 
-.seat-label {
+.seat-label,
+.seat {
+    width: 48px;
+    height: 42px;
+
     display: flex;
     align-items: center;
     justify-content: center;
 
-    width: 55px;
-    height: 55px;
-
-    border: 2px solid #28a745;
     border-radius: 8px;
 
-    background-color: white;
-
-    color: black;
-
-    cursor: pointer;
-
+    font-size: 13px;
     font-weight: bold;
 
     user-select: none;
+    box-sizing: border-box;
+}
+
+
+/* =========================
+   AVAILABLE
+========================= */
+
+.seat-label {
+    border: 2px solid #28a745;
+    background-color: white;
+    color: #222;
+    cursor: pointer;
 
     transition:
         background-color 0.2s,
@@ -394,10 +572,6 @@ body {
 }
 
 
-/* =========================
-   HOVER
-========================= */
-
 .seat-label:hover {
     background-color: #e8f5e9;
     transform: scale(1.05);
@@ -405,55 +579,15 @@ body {
 
 
 /* =========================
-   SELECTED SEAT
+   SELECTED
 ========================= */
 
 .seat-checkbox:checked + .seat-label {
-
     background-color: #0d6efd;
-
     color: white;
-
     border-color: #0d6efd;
 
     transform: scale(1.05);
-}
-
-
-/* =========================
-   COMMON SEAT
-========================= */
-
-.seat {
-
-    width: 55px;
-    height: 55px;
-
-    margin: 5px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    border-radius: 8px;
-
-    font-weight: bold;
-
-    user-select: none;
-}
-
-
-/* =========================
-   AVAILABLE LEGEND
-========================= */
-
-.seat.available {
-
-    background-color: white;
-
-    border: 2px solid #28a745;
 }
 
 
@@ -462,13 +596,9 @@ body {
 ========================= */
 
 .seat.reserved {
-
     background-color: #ffc107;
-
-    color: black;
-
+    color: #000;
     border: 2px solid #ffc107;
-
     cursor: not-allowed;
 }
 
@@ -478,13 +608,9 @@ body {
 ========================= */
 
 .seat.booked {
-
     background-color: #dc3545;
-
     color: white;
-
     border: 2px solid #dc3545;
-
     cursor: not-allowed;
 }
 
@@ -494,28 +620,10 @@ body {
 ========================= */
 
 .seat.inactive {
-
     background-color: #ccc;
-
     color: #666;
-
     border: 2px solid #ccc;
-
     cursor: not-allowed;
-}
-
-
-/* =========================
-   SELECTED LEGEND
-========================= */
-
-.seat.selected {
-
-    background-color: #0d6efd;
-
-    color: white;
-
-    border: 2px solid #0d6efd;
 }
 
 
@@ -524,20 +632,62 @@ body {
 ========================= */
 
 .screen {
+    width: 80%;
+    max-width: 650px;
 
-    margin: 20px 0;
+    margin: 20px auto 35px;
 
-    background-color: #ccc;
+    background: linear-gradient(
+        to bottom,
+        #ddd,
+        #aaa
+    );
 
-    height: 50px;
+    height: 45px;
 
     text-align: center;
+    line-height: 45px;
 
-    line-height: 50px;
+    color: #555;
 
-    color: #666;
+    border-radius: 50% 50% 8px 8px;
 
-    border-radius: 5px;
+    font-weight: bold;
+
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 768px) {
+
+    .seat-label,
+    .seat {
+        width: 40px;
+        height: 36px;
+        font-size: 11px;
+    }
+
+    .seat-grid {
+        grid-template-columns:
+            repeat(6, 40px)
+            15px
+            repeat(6, 40px);
+
+        gap: 6px;
+    }
+
+    .seat-row {
+        gap: 6px;
+    }
+
+    .cinema-seat-layout {
+        overflow-x: auto;
+    }
+
 }
 
 </style>

@@ -112,7 +112,19 @@
               </div>
 
             {% endfor %}
+              <div class="mb-3">
 
+    <label
+        for="{{ location_form.preferred_location.id_for_label }}"
+        class="form-label"
+    >
+        <i class="fas fa-map-marker-alt me-2"></i>
+        Preferred Location
+    </label>
+
+    {{ location_form.preferred_location }}
+
+</div>
             <button
               class="btn btn-primary w-100"
               type="submit"

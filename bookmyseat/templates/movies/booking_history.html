@@ -75,6 +75,14 @@
                         Test Email Ticket
                          </a>
                     {% endif %}
+                    00
+                    {% if booking.booking_status == "Pending" and booking.payment_status == "Pending" %}
+    <a href="{% url 'upi_payment' booking.id %}"
+       class="btn btn-primary mt-2">
+        <i class="fas fa-credit-card me-1"></i>
+        Pay Now
+    </a>
+{% endif %}
                     {% if booking.booking_status == "Cancelled" and booking.payment_status == "Failed" %}
     <a href="{% url 'book_seats' booking.theater.id %}?show_schedule={{ booking.show_schedule.id }}"
        class="btn btn-warning mt-2">

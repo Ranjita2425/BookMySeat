@@ -200,7 +200,228 @@
     transform: scale(1.02);
     transition: 0.3s ease;
 }
+/* ============================================================
+   DATE SELECTION
+============================================================ */
 
+.date-selection-section {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+}
+
+.date-scroller {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 5px 2px 10px;
+}
+
+.date-card {
+    min-width: 82px;
+    padding: 12px 10px;
+    text-align: center;
+    text-decoration: none;
+    color: #333;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    transition: 0.2s ease;
+}
+
+.date-card:hover {
+    border-color: #ef476f;
+    color: #ef476f;
+    transform: translateY(-2px);
+}
+
+.date-card.active {
+    background: #ef476f;
+    color: white;
+    border-color: #ef476f;
+    box-shadow: 0 4px 10px rgba(239,71,111,0.25);
+}
+
+.date-day {
+    display: block;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.date-number {
+    display: block;
+    font-size: 25px;
+    margin: 2px 0;
+}
+
+.date-month {
+    display: block;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+
+/* ============================================================
+   SELECTED DATE
+============================================================ */
+
+.selected-date-heading {
+    background: #f1f5f9;
+    padding: 15px 18px;
+    border-radius: 10px;
+    margin: 20px 0;
+    font-size: 16px;
+}
+
+
+/* ============================================================
+   THEATER CARD
+============================================================ */
+
+.theater-card {
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.theater-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.theater-header h4 {
+    margin: 0;
+    font-weight: bold;
+}
+
+.theater-header p {
+    margin: 5px 0 0;
+    color: #777;
+}
+
+.theater-features {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: #666;
+}
+
+
+/* ============================================================
+   SHOW TIMES
+============================================================ */
+
+.show-section {
+    padding-top: 18px;
+}
+
+.show-section h6 {
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.show-time-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.show-time-card {
+    min-width: 125px;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 9px;
+    text-decoration: none;
+    color: #333;
+    background: #fff;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.show-time-card:hover {
+    border-color: #ef476f;
+    background: #fff5f7;
+    transform: translateY(-2px);
+}
+
+.show-time-card strong {
+    display: block;
+    font-size: 16px;
+}
+
+.show-time-card span {
+    display: block;
+    font-size: 12px;
+    color: #777;
+    margin-top: 4px;
+}
+
+.show-time-card .price {
+    color: #222;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+.show-time-card small {
+    display: block;
+    margin-top: 7px;
+    color: #ef476f;
+    font-weight: bold;
+}
+
+
+/* ============================================================
+   NO SHOWS
+============================================================ */
+
+.no-shows {
+    background: white;
+    text-align: center;
+    padding: 45px 20px;
+    border-radius: 12px;
+    margin-top: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.empty-icon {
+    font-size: 45px;
+    margin-bottom: 10px;
+}
+
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 768px) {
+
+    .theater-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .theater-features {
+        font-size: 12px;
+    }
+
+    .date-card {
+        min-width: 72px;
+    }
+
+    .show-time-card {
+        min-width: 105px;
+    }
+
+}
   </style>
   
   <body>
@@ -277,73 +498,176 @@
     {% endif %}
 </div>
   
-      <!-- Conditional Check for Theaters -->
-      {% if schedules %}
+      <!-- ============================================================
+     DATE SELECTION
+============================================================ -->
 
-    {% for schedule in schedules %}
+<div class="date-selection-section mt-4">
 
-    <div class="theatre-info">
+    <h3 class="mb-3">
+        📅 Select Date
+    </h3>
 
-        <div>
-            <strong>
-                {{ schedule.screen.theater.theater_name }} Theater
-            </strong>
+    <div class="date-scroller">
 
-            <div class="info-icons mt-2">
-                <i class="fas fa-mobile-alt text-success"></i>
-                M-Ticket
+        {% for date in available_dates %}
 
-                <i class="fas fa-utensils text-warning ms-3"></i>
-                Food & Beverage
+            <a
+                href="?date={{ date|date:'Y-m-d' }}"
+                class="date-card{% if date == selected_date %} active{% endif %}"
+            >
 
-                <i class="fas fa-parking text-primary ms-3"></i>
-                Parking Available
+                <span class="date-day">
+                    {{ date|date:"D" }}
+                </span>
 
-                <i class="fas fa-wheelchair text-info ms-3"></i>
-                Wheelchair Access
+                <strong class="date-number">
+                    {{ date|date:"d" }}
+                </strong>
 
-                <i class="fas fa-glasses text-danger ms-3"></i>
-                3D Show Available
-            </div>
-        </div>
+                <span class="date-month">
+                    {{ date|date:"M" }}
+                </span>
 
-    </div>
-
-
-    <div class="show-times">
-
-        <div class="time-box">
-
-            {{ schedule.start_time }}
-
-            <span>
-                {{ schedule.show_date }}
-            </span>
-
-            <span>
-                {{ schedule.screen.screen_name }}
-            </span>
-
-            <span>
-                ₹{{ schedule.ticket_price }}
-            </span>
-
-            <a href="{% url 'book_seats' schedule.screen.theater.id %}?show_schedule={{ schedule.id }}">
-                <span>Book Now</span>
             </a>
 
-        </div>
+        {% endfor %}
 
     </div>
+
+</div>
+
+
+<!-- ============================================================
+     SELECTED DATE
+============================================================ -->
+
+{% if selected_date %}
+
+    <div class="selected-date-heading">
+
+        Shows available on
+
+        <strong>
+            {{ selected_date|date:"l, d M Y" }}
+        </strong>
+
+    </div>
+
+{% endif %}
+<!-- ============================================================
+     THEATERS + SHOW TIMES
+============================================================ -->
+
+{% if schedules %}
+
+    {% regroup schedules by screen.theater as theater_list %}
+
+    {% for theater_group in theater_list %}
+
+        <div class="theater-card">
+
+            <!-- Theater Header -->
+
+            <div class="theater-header">
+
+                <div>
+
+                    <h4>
+                        {{ theater_group.grouper.theater_name }}
+                    </h4>
+
+                    <p>
+                        📍 {{ theater_group.grouper.city }}
+                    </p>
+
+                </div>
+
+                <div class="theater-features">
+
+                    <span>
+                        🎟 M-Ticket
+                    </span>
+
+                    <span>
+                        🍿 Food
+                    </span>
+
+                    <span>
+                        🅿 Parking
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- Show Timings -->
+
+            <div class="show-section">
+
+                <h6>
+                    Select Show Time
+                </h6>
+
+                <div class="show-time-grid">
+
+                    {% for schedule in theater_group.list %}
+
+                        <a
+                            href="{% url 'book_seats' schedule.screen.theater.id %}?show_schedule={{ schedule.id }}"
+                            class="show-time-card"
+                        >
+
+                            <strong>
+                                {{ schedule.start_time|time:"g:i A" }}
+                            </strong>
+
+                            <span>
+                                {{ schedule.screen.screen_name }}
+                            </span>
+
+                            <span class="price">
+                                ₹{{ schedule.ticket_price }}
+                            </span>
+
+                            <small>
+                                Book Now
+                            </small>
+
+                        </a>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </div>
 
     {% endfor %}
 
 {% else %}
 
-    <div class="no-theaters mt-4">
+    <div class="no-shows">
+
+        <div class="empty-icon">
+            🎬
+        </div>
+
+        <h4>
+            No shows available
+        </h4>
+
         <p>
-            Sorry, no shows are available for this movie at the moment.
+            There are no shows available for
+            {{ selected_date|date:"l, d M Y" }}.
         </p>
+
+        <p class="text-muted">
+            Please select another date.
+        </p>
+
     </div>
 
 {% endif %}

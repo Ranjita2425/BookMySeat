@@ -1,5 +1,4 @@
 {% extends "users/basic.html" %}
-
 {% block content %}
 
 <div class="container py-5">
@@ -59,88 +58,104 @@
                     -
                     {{ booking.show_schedule.end_time }}
                 </p>
-
             </div>
 
             <!-- ================= AMOUNT ================= -->
-
             <div class="text-center my-4">
-
                 <p class="text-muted mb-1">
                     Total Amount
                 </p>
-
-                
+               
                 <h2 class="text-success">
                     ₹{{ total_amount }}
                 </h2>
             </div>
             <hr>
-            <!-- ================= UPI OPTIONS ================= -->
-            <h5 class="mb-3">
-                Select UPI Payment Option
-            </h5>
+            
+                <button
+    type="button"
+    id="razorpay-button"
+    class="btn btn-primary w-100 mt-3">
 
-            <div class="row g-3">
+    <i class="fas fa-credit-card me-2"></i>
+    Pay ₹{{ total_amount }} with Razorpay
+</button>
 
-                <!-- GOOGLE PAY -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-                <div class="col-md-4">
+<script>
+    document.getElementById("razorpay-button").onclick = function () {
+        
+        var options = {
+            "key": "{{ razorpay_key_id }}",
+            "amount": "{{ total_amount|floatformat:0 }}00",
+            "currency": "INR",
+            "name": "BookMySeat",
+            "description": "{{ booking.movie.name }} - Movie Ticket",
+            "order_id": "{{ razorpay_order_id }}",
+            "method": {
+    "upi": true,
+    "card": true,
+    "netbanking": true,
+    "wallet": true
+},
+            "handler": function (response) {
 
-                    <button
-                        type="button"
-                        class="btn btn-outline-primary w-100 py-3"
-                        onclick="selectUPI('Google Pay')">
+    var form = document.createElement("form");
 
-                        <i class="fab fa-google-pay fa-lg"></i>
+    form.method = "POST";
+    form.action = "{% url 'upi_payment' booking.id %}";
 
-                        <br>
+    var csrf = document.createElement("input");
+    csrf.type = "hidden";
+    csrf.name = "csrfmiddlewaretoken";
+    csrf.value = "{{ csrf_token }}";
+    form.appendChild(csrf);
 
-                        Google Pay
+    var paymentId = document.createElement("input");
+    paymentId.type = "hidden";
+    paymentId.name = "razorpay_payment_id";
+    paymentId.value = response.razorpay_payment_id;
+    form.appendChild(paymentId);
 
-                    </button>
+    var orderId = document.createElement("input");
+    orderId.type = "hidden";
+    orderId.name = "razorpay_order_id";
+    orderId.value = response.razorpay_order_id;
+    form.appendChild(orderId);
 
-                </div>
+    var signature = document.createElement("input");
+    signature.type = "hidden";
+    signature.name = "razorpay_signature";
+    signature.value = response.razorpay_signature;
+    form.appendChild(signature);
 
+    document.body.appendChild(form);
+    form.submit();
+},
 
-                <!-- PHONEPE -->
+            "prefill": {
+                "name": "{{ request.user.get_full_name }}",
+                "email": "{{ request.user.email }}"
+            },
 
-                <div class="col-md-4">
+            "theme": {
+                "color": "#0d6efd"
+            }
+        };
 
-                    <button
-                        type="button"
-                        class="btn btn-outline-success w-100 py-3"
-                        onclick="selectUPI('PhonePe')">
+        var razorpay = new Razorpay(options);
 
-                        <i class="fas fa-mobile-alt fa-lg"></i>
+        razorpay.on("payment.failed", function (response) {
+            alert(
+                "Payment failed.\n" +
+                response.error.description
+            );
+        });
 
-                        <br>
-
-                        PhonePe
-
-                    </button>
-
-                </div>
-
-
-                <!-- PAYTM -->
-
-                <div class="col-md-4">
-
-                    <button
-                        type="button"
-                        class="btn btn-outline-info w-100 py-3"
-                        onclick="selectUPI('Paytm')">
-
-                        <i class="fas fa-wallet fa-lg"></i>
-
-                        <br>
-
-                        Paytm
-
-                    </button>
-
-                </div>
+        razorpay.open();
+    };
+</script>
 
             </div>
 
@@ -215,15 +230,7 @@
                         Processing Payment...
                     </span>
                 </button>
-                <button
-    type="submit"
-    name="payment_result"
-    value="failed"
-    class="btn btn-outline-danger w-100 mt-3">
-
-    <i class="fas fa-times-circle me-2"></i>
-    Simulate Failed Payment
-</button>
+                
             </form>
             <!-- ================= PROCESSING MESSAGE ================= -->
             <div

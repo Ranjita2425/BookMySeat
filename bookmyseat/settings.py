@@ -152,5 +152,9 @@ CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
 CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
 
 # Razorpay Test Mode
-RAZORPAY_KEY_ID = os.getenv("rzp_test_Ti7iCIp3taD2TA")
-RAZORPAY_KEY_SECRET = os.getenv("cuNnwkDAzuVmgT55VPZqRind")
+
+RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET")
+
+print("Razorpay Key Loaded:", bool(RAZORPAY_KEY_ID))
+print("Razorpay Secret Loaded:", bool(RAZORPAY_KEY_SECRET))

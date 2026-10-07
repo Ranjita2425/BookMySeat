@@ -13,7 +13,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 import razorpay,uuid
-
+from movies.tasks import send_booking_ticket_email_task
 # ============================================================
 # HOME
 # ============================================================

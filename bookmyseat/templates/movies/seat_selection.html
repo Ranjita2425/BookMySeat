@@ -112,7 +112,7 @@
 
             {% if selected_schedule %}
 
-            <div class="card">
+            <div class="card seat-selection-card" style="width: 95%; max-width: 900px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;">
 
                 <div class="card-body">
 
@@ -167,62 +167,58 @@
 <div class="cinema-seat-layout">
 
     <!-- RECLINER -->
-    <div class="seat-category">
+    <div class="seat-grid recliner-grid">
 
-        <h6 class="seat-category-title">
-            RECLINER
-        </h6>
+    {% for seat in seats %}
 
-        <div class="seat-row">
+        {% if seat.seat_type == "RECLINER" %}
 
-            {% for seat in seats %}
+            <div class="seat-item">
 
-                {% if seat.seat_type == "RECLINER" %}
+                {% if not seat.is_active %}
 
-                    {% if not seat.is_active %}
+                    <div class="seat inactive">
+                        {{ seat.seat_number }}
+                    </div>
 
-                        <div class="seat inactive">
-                            {{ seat.seat_number }}
-                        </div>
+                {% elif seat.id in booked_seat_ids %}
 
-                    {% elif seat.id in booked_seat_ids %}
+                    <div class="seat booked">
+                        {{ seat.seat_number }}
+                    </div>
 
-                        <div class="seat booked">
-                            {{ seat.seat_number }}
-                        </div>
+                {% elif seat.id in reserved_seat_ids %}
 
-                    {% elif seat.id in reserved_seat_ids %}
+                    <div class="seat reserved">
+                        {{ seat.seat_number }}
+                    </div>
 
-                        <div class="seat reserved">
-                            {{ seat.seat_number }}
-                        </div>
+                {% else %}
 
-                    {% else %}
+                    <input
+                        type="checkbox"
+                        name="seats"
+                        value="{{ seat.id }}"
+                        id="seat-{{ seat.id }}"
+                        class="seat-checkbox"
+                    >
 
-                        <input
-                            type="checkbox"
-                            name="seats"
-                            value="{{ seat.id }}"
-                            id="seat-{{ seat.id }}"
-                            class="seat-checkbox"
-                        >
-
-                        <label
-                            for="seat-{{ seat.id }}"
-                            class="seat-label"
-                        >
-                            {{ seat.seat_number }}
-                        </label>
-
-                    {% endif %}
+                    <label
+                        for="seat-{{ seat.id }}"
+                        class="seat seat-label"
+                    >
+                        {{ seat.seat_number }}
+                    </label>
 
                 {% endif %}
 
-            {% endfor %}
+            </div>
 
-        </div>
+        {% endif %}
 
-    </div>
+    {% endfor %}
+
+</div>
 
 
     <!-- PREMIUM -->
@@ -348,83 +344,50 @@
 
                         <div class="d-flex justify-content-center flex-wrap mb-4">
 
-                            <div class="d-flex align-items-center me-4 mb-2">
+                            <div class="seat-legend">
 
-                                <div class="seat available"></div>
+    <div class="legend-item">
+        <span class="legend-seat available"></span>
+        <span>Available</span>
+    </div>
 
-                                <span class="ms-2">
-                                    Available
-                                </span>
+    <div class="legend-item">
+        <span class="legend-seat reserved"></span>
+        <span>Reserved</span>
+    </div>
 
-                            </div>
+    <div class="legend-item">
+        <span class="legend-seat booked"></span>
+        <span>Booked</span>
+    </div>
 
+    <div class="legend-item">
+        <span class="legend-seat selected"></span>
+        <span>Selected</span>
+    </div>
 
-                            <div class="d-flex align-items-center me-4 mb-2">
-
-                                <div class="seat reserved"></div>
-
-                                <span class="ms-2">
-                                    Reserved
-                                </span>
-
-                            </div>
-
-
-                            <div class="d-flex align-items-center me-4 mb-2">
-
-                                <div class="seat booked"></div>
-
-                                <span class="ms-2">
-                                    Booked
-                                </span>
-
-                            </div>
-
-
-                            <div class="d-flex align-items-center mb-2">
-
-                                <div class="seat selected"></div>
-
-                                <span class="ms-2">
-                                    Selected
-                                </span>
-
-                            </div>
-
-                        </div>
+</div>
 
 
                         <!-- Booking Summary -->
 
                         <div class="text-center mb-4">
 
-                            <h5>
-                                Selected Seats:
-                                <span id="selected-count">0</span>
-                            </h5>
+                            <div class="booking-summary">
 
-                            <h5>
-                                Total Amount:
-                                ₹<span id="total-amount">0</span>
-                            </h5>
+    <div class="selected-seats">
+        Selected Seats: <span id="selected-count">0</span>
+    </div>
 
-                        </div>
+    <div class="total-amount">
+        Total Amount: ₹<span id="total-amount">0.00</span>
+    </div>
 
+    <button type="submit" class="btn btn-success book-seats-btn">
+    Book Selected Seats
+</button>
 
-                        <!-- Book Button -->
-
-                        <div class="text-center">
-
-                            <button
-                                type="submit"
-                                class="btn btn-success btn-lg"
-                                id="book-button"
-                            >
-                                Book Selected Seats
-                            </button>
-
-                        </div>
-
+</div>
                     </form>
 
                 </div>
@@ -449,91 +412,64 @@
 body {
     font-family: Arial, sans-serif;
 }
-
-
-/* =========================
-   SEAT WRAPPER
-========================= */
-
 /* =========================
    CINEMA SEAT LAYOUT
 ========================= */
+
+/* =========================================================
+   CINEMA SEAT LAYOUT
+========================================================= */
 
 .cinema-seat-layout {
     width: 100%;
     max-width: 850px;
     margin: 0 auto 30px;
+    box-sizing: border-box;
 }
 
 .seat-category {
-    margin-bottom: 30px;
+    width: 100%;
+    margin-bottom: 35px;
 }
 
 .seat-category-title {
     text-align: center;
     font-weight: bold;
-    margin-bottom: 15px;
+    margin-bottom: 18px;
     letter-spacing: 1px;
 }
 
 
-/* =========================
-   SEAT ROW
-========================= */
-
-.seat-row {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-
-/* =========================
-   SEAT GRID WITH AISLE
-========================= */
+/* =========================================================
+   SEAT GRID
+   6 SEATS | AISLE | 6 SEATS
+========================================================= */
 
 .seat-grid {
     display: grid;
+
     grid-template-columns:
-        repeat(6, 1fr)
-        25px
-        repeat(6, 1fr);
+        repeat(6, 48px)
+        28px
+        repeat(6, 48px);
 
-    gap: 10px;
+    column-gap: 8px;
+    row-gap: 12px;
+
     justify-content: center;
+    align-items: center;
+
+    width: 100%;
+    max-width: 680px;
+
+    margin: 0 auto 30px;
+    padding: 0;
+
+    box-sizing: border-box;
 }
-
-
-/*
-    24 seats:
-    6 seats | aisle | 6 seats
-    6 seats | aisle | 6 seats
-*/
-
-.seat-grid > *:nth-child(13) {
-    grid-column: 1;
-}
-
-.seat-grid > *:nth-child(14) {
-    grid-column: 2;
-}
-
-
-/* =========================
-   HIDE CHECKBOX
-========================= */
-
-.seat-checkbox {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-}
-
-
-/* =========================
-   AVAILABLE SEAT
-========================= */
+/* =========================================================
+   SEAT
+========================================================= */
 
 .seat-label,
 .seat {
@@ -544,6 +480,8 @@ body {
     align-items: center;
     justify-content: center;
 
+    margin: 0 auto;
+
     border-radius: 8px;
 
     font-size: 13px;
@@ -551,143 +489,338 @@ body {
 
     user-select: none;
     box-sizing: border-box;
+
+    flex-shrink: 0;
 }
 
 
-/* =========================
+/* =========================================================
+   CHECKBOX
+========================================================= */
+
+.seat-checkbox {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+
+/* =========================================================
    AVAILABLE
-========================= */
+========================================================= */
 
 .seat-label {
+    background-color: #ffffff;
+    color: #222222;
+
     border: 2px solid #28a745;
-    background-color: white;
-    color: #222;
+
     cursor: pointer;
 
     transition:
-        background-color 0.2s,
-        color 0.2s,
-        border-color 0.2s,
-        transform 0.2s;
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
 }
 
+
+/* Available hover */
 
 .seat-label:hover {
     background-color: #e8f5e9;
-    transform: scale(1.05);
+    border-color: #28a745;
+
+    transform: translateY(-2px);
 }
 
 
-/* =========================
+/* =========================================================
    SELECTED
-========================= */
+========================================================= */
 
 .seat-checkbox:checked + .seat-label {
     background-color: #0d6efd;
-    color: white;
+    color: #ffffff;
+
     border-color: #0d6efd;
 
-    transform: scale(1.05);
+    transform: translateY(-2px);
 }
 
 
-/* =========================
+/* =========================================================
    RESERVED
-========================= */
+========================================================= */
 
 .seat.reserved {
     background-color: #ffc107;
-    color: #000;
+    color: #000000;
+
     border: 2px solid #ffc107;
+
     cursor: not-allowed;
 }
 
 
-/* =========================
+/* =========================================================
    BOOKED
-========================= */
+========================================================= */
 
 .seat.booked {
     background-color: #dc3545;
-    color: white;
+    color: #ffffff;
+
     border: 2px solid #dc3545;
+
     cursor: not-allowed;
 }
 
 
-/* =========================
+/* =========================================================
    INACTIVE
-========================= */
+========================================================= */
 
 .seat.inactive {
-    background-color: #ccc;
-    color: #666;
-    border: 2px solid #ccc;
+    background-color: #cccccc;
+    color: #666666;
+
+    border: 2px solid #cccccc;
+
     cursor: not-allowed;
 }
 
 
-/* =========================
+/* =========================================================
    SCREEN
-========================= */
+========================================================= */
 
 .screen {
     width: 80%;
     max-width: 650px;
 
+    height: 45px;
+
     margin: 20px auto 35px;
 
     background: linear-gradient(
         to bottom,
-        #ddd,
-        #aaa
+        #dddddd,
+        #aaaaaa
     );
-
-    height: 45px;
 
     text-align: center;
     line-height: 45px;
 
-    color: #555;
+    color: #555555;
 
     border-radius: 50% 50% 8px 8px;
 
     font-weight: bold;
 
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 
-/* =========================
-   MOBILE
-========================= */
+/* =========================================================
+   LEGEND
+========================================================= */
+
+.seat-legend {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    gap: 25px;
+
+    flex-wrap: wrap;
+
+    width: 100%;
+    max-width: 650px;
+
+    margin: 25px auto;
+
+    box-sizing: border-box;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+
+    white-space: nowrap;
+
+    font-size: 14px;
+}
+
+.legend-seat {
+    width: 28px;
+    height: 28px;
+
+    display: inline-block;
+
+    border-radius: 6px;
+
+    box-sizing: border-box;
+}
+
+.legend-seat.available {
+    background: #ffffff;
+    border: 2px solid #28a745;
+}
+
+.legend-seat.reserved {
+    background: #ffc107;
+    border: 2px solid #ffc107;
+}
+
+.legend-seat.booked {
+    background: #dc3545;
+    border: 2px solid #dc3545;
+}
+
+.legend-seat.selected {
+    background: #0d6efd;
+    border: 2px solid #0d6efd;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
 
 @media (max-width: 768px) {
 
-    .seat-label,
-    .seat {
-        width: 40px;
-        height: 36px;
-        font-size: 11px;
+    .cinema-seat-layout {
+        width: 100%;
+        overflow-x: auto;
+
+        padding: 0 10px;
+
+        box-sizing: border-box;
     }
 
     .seat-grid {
         grid-template-columns:
             repeat(6, 40px)
-            15px
+            20px
             repeat(6, 40px);
 
-        gap: 6px;
+        column-gap: 6px;
+        row-gap: 10px;
+
+        width: max-content;
+        max-width: none;
+
+        margin: 0 auto 30px;
     }
 
-    .seat-row {
-        gap: 6px;
+    .seat-label,
+    .seat {
+        width: 40px;
+        height: 36px;
+
+        font-size: 11px;
     }
+
+    .seat-legend {
+        gap: 15px;
+        padding: 0 10px;
+    }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
 
     .cinema-seat-layout {
-        overflow-x: auto;
+        padding: 0 5px;
     }
 
+    .seat-grid {
+        grid-template-columns:
+            repeat(6, 36px)
+            15px
+            repeat(6, 36px);
+
+        column-gap: 5px;
+        row-gap: 8px;
+    }
+
+    .seat-label,
+    .seat {
+        width: 36px;
+        height: 32px;
+
+        font-size: 10px;
+    }
+
+    .seat-legend {
+        gap: 10px;
+    }
+
+    .legend-item {
+        font-size: 12px;
+    }
+
+    .legend-seat {
+        width: 25px;
+        height: 25px;
+    }
+}
+
+/* =========================
+   RECLINER ONLY
+========================= */
+
+.recliner-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 48px);
+    gap: 10px;
+
+    justify-content: center;
+
+    width: 100%;
+    max-width: 330px;
+
+    margin: 0 auto 30px;
+}
+
+.recliner-grid .seat-item {
+    width: 48px;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* Recliner responsive */
+
+@media (max-width: 768px) {
+
+    .recliner-grid {
+        grid-template-columns: repeat(6, 40px);
+        gap: 6px;
+
+        max-width: 270px;
+    }
+
+    .recliner-grid .seat-item {
+        width: 40px;
+        height: 36px;
+    }
+}
+.seat-selection-container {
+    width: 100%;
+    max-width: 850px;
+    margin: 0 auto;
+    box-sizing: border-box;
 }
 
 </style>

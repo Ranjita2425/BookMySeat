@@ -17,7 +17,7 @@ ENV_FILE = os.path.join(BASE_DIR, ".env")
 load_dotenv(ENV_FILE)
 
 # SECURITY
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 

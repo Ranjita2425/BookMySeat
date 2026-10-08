@@ -1,0 +1,20 @@
+[
+  {
+    "model": "users.location",
+    "pk": 1,
+    "fields": {
+      "state": "Karnataka",
+      "district": "Bengaluru Urban",
+      "city": "Bengaluru"
+    }
+  },
+  {
+    "model": "users.location",
+    "pk": 2,
+    "fields": {
+      "state": "Karnataka",
+      "district": "Bengaluru Rural",
+      "city": "Bengaluru"
+    }
+  }
+]

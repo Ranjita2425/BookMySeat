@@ -14,6 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 import razorpay,uuid
 from movies.tasks import send_booking_ticket_email_task
+from .models import UserProfile
 # ============================================================
 # HOME
 # ============================================================
@@ -37,6 +38,7 @@ def home(request):
 # ============================================================
 
 def register(request):
+   
     if request.method == "POST":
         form = UserRegisterForm(
             request.POST
@@ -142,7 +144,7 @@ def profile(request):
 
         location_form = LocationUpdateForm(
             request.POST,
-            instance=request.user.profile
+            instance=UserProfile.objects.get_or_create(user=request.user)[0]
         )
 
         if u_form.is_valid() and location_form.is_valid():
@@ -156,7 +158,7 @@ def profile(request):
             instance=request.user
         )
         location_form = LocationUpdateForm(
-            instance=request.user.profile
+           instance=UserProfile.objects.get_or_create(user=request.user)[0]
         )
 
     return render(
